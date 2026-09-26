@@ -33,6 +33,8 @@
         "start:ptb": "node scripts/startPtbDev.mjs",
         "verify:ptb": "node scripts/verifyPtbPatch.mjs",
         "restore:ptb": "node scripts/restorePtbVanilla.mjs",
+        "installer:dev": "node scripts/checkNodeVersion.js && pnpm install && pnpm --filter quietcord-installer start",
+        "installer:pack": "pnpm build && pnpm install && pnpm --filter quietcord-installer pack:win",
         "inject:dev": "cross-env QUIET_DEV_INSTALL=1 node scripts/runInstaller.mjs -- --install",
         "uninject": "node scripts/runInstaller.mjs -- --uninstall",
         "lint": "eslint",

@@ -78,6 +78,8 @@ Opcional: `QUIET_QUIT_PTB=1 pnpm inject:ptb` cierra **solo** `DiscordPTB.exe` an
 
 Si Discord PTB **no arranca** tras `inject:ptb`: `pnpm restore:ptb` (vuelve al Discord vanilla).
 
+**Instalador gráfico QuietCord (Electron):** `pnpm build` → `pnpm installer:dev` (desarrollo) o `pnpm installer:pack` (`.exe` portable en `dist-installer/`). Solo PTB, pantallas Install / Uninstall / Reinstall bundle + verify. Ver [docs/INSTALLER-GUI.md](docs/INSTALLER-GUI.md).
+
 ### ¿Cómo saber si Quiet está cargado (no PTB “nativo”)?
 
 **`sync:ptb` no inyecta Quiet** — solo copia `dist/` a `_vencord` si ya corriste `inject:ptb` antes. Abrir Discord PTB desde el menú Inicio **sin** stub en `app.asar` = Discord normal (sin plugins, sin Quiet Hub, sin logo en home).

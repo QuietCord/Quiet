@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data:; script-src 'self';" />
+    <title>QuietCord Installer</title>
+    <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+    <div class="app">
+        <header class="hero">
+            <img id="logo" class="hero-logo" alt="" width="72" height="72" hidden />
+            <div>
+                <h1 id="product-name">QuietCord</h1>
+                <p id="tagline" class="tagline"></p>
+            </div>
+        </header>
+
+        <section id="screen-ptb" class="card" hidden>
+            <h2>Discord PTB required</h2>
+            <p>QuietCord only installs into <strong>Discord PTB</strong>. Stable Discord is never modified.</p>
+            <button type="button" class="btn primary" id="btn-download-ptb">Download Discord PTB</button>
+            <button type="button" class="btn ghost" id="btn-recheck-ptb">I installed PTB — check again</button>
+        </section>
+
+        <section id="screen-main" class="card" hidden>
+            <div class="status-row">
+                <span class="dot" id="status-dot"></span>
+                <div>
+                    <p class="status-headline" id="status-headline">Checking…</p>
+                    <p class="status-detail" id="status-detail"></p>
+                </div>
+            </div>
+            <ul id="app-list" class="app-list"></ul>
+
+            <p id="dist-warn" class="warn-banner" hidden></p>
+
+            <div class="actions">
+                <button type="button" class="btn primary" id="btn-install">Install QuietCord</button>
+                <button type="button" class="btn" id="btn-update">Update / Repair</button>
+                <button type="button" class="btn danger" id="btn-uninstall">Uninstall</button>
+            </div>
+
+            <details class="troubleshoot">
+                <summary>Disk says patched but Quiet Hub doesn&apos;t load?</summary>
+                <p>If verify shows <strong>PATCHED</strong> but the client looks like vanilla Discord, run full repair. If mods load but plugins or Hub are missing, reinstall the bundle only.</p>
+                <button type="button" class="btn" id="btn-reinstall-bundle">Reinstall bundle</button>
+                <button type="button" class="btn ghost" id="btn-refresh">Refresh status</button>
+            </details>
+
+            <pre id="log" class="log" hidden></pre>
+        </section>
+
+        <section id="screen-done" class="card success" hidden>
+            <h2>You&apos;re set</h2>
+            <ol class="steps">
+                <li>Fully quit Discord PTB from the system tray if it was open during install.</li>
+                <li>Open <strong>Discord PTB</strong> (not regular Discord).</li>
+                <li>Go to <strong id="hub-hint">Settings → Quiet Hub</strong> for Focus, Performance, and patch health.</li>
+                <li>Optional: connect <strong>Cloud</strong> for sync — see privacy link below.</li>
+            </ol>
+            <div class="actions">
+                <button type="button" class="btn primary" id="btn-open-ptb">Open Discord PTB</button>
+                <button type="button" class="btn" id="btn-cloud">Cloud privacy &amp; setup</button>
+            </div>
+            <button type="button" class="btn ghost" id="btn-back">Back to installer</button>
+        </section>
+
+        <footer class="footer">
+            <button type="button" class="link" id="link-website">GitHub</button>
+            <span id="ptb-note"></span>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

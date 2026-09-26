@@ -1,0 +1,50 @@
+{
+    "name": "quietcord-installer",
+    "private": true,
+    "version": "1.0.0",
+    "description": "QuietCord GUI installer for Discord PTB",
+    "license": "GPL-3.0-or-later",
+    "type": "module",
+    "main": "electron-main.mjs",
+    "scripts": {
+        "start": "electron .",
+        "pack:win": "electron-builder --win portable"
+    },
+    "devDependencies": {
+        "electron": "^35.0.0",
+        "electron-builder": "^25.1.8"
+    },
+    "build": {
+        "appId": "dev.quietcord.installer",
+        "productName": "QuietCord Installer",
+        "directories": {
+            "output": "../dist-installer"
+        },
+        "files": [
+            "electron-main.mjs",
+            "preload.mjs",
+            "index.html",
+            "app.css",
+            "app.js"
+        ],
+        "extraResources": [
+            {
+                "from": "../dist",
+                "to": "quiet-dist",
+                "filter": [
+                    "patcher.js",
+                    "patcher.js.map",
+                    "preload.js",
+                    "renderer.js",
+                    "renderer.css"
+                ]
+            }
+        ],
+        "win": {
+            "target": [
+                "portable"
+            ],
+            "icon": "../assets/brand/favicon.ico"
+        }
+    }
+}
