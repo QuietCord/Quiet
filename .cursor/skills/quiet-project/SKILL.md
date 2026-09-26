@@ -33,7 +33,23 @@ Edit `src/shared/brand.ts` (API URL, badges, docs). Read [FORK.md](../../../FORK
 | `pnpm build` | Desktop production build |
 | `pnpm buildWeb` / `pnpm watchWeb` | Browser extension / web |
 | `pnpm inject:ptb` / `pnpm restore:ptb` / `pnpm verify:ptb` | Embed Quiet in **Discord PTB only** (`DiscordPTB.exe`, `%LOCALAPPDATA%\\DiscordPTB`) |
-| `pnpm inject` / `pnpm uninject` | Official installer, **PTB branch only** (never stable) |
+| `pnpm sync:ptb` | Copy `dist/` → PTB `resources/_vencord` without reinstalling |
+| `pnpm start:ptb` | Launch PTB with `QUIET_DEV=1` |
+| `pnpm dev:ptb` | Watch + auto `sync:ptb` (long-running) |
+
+### PTB rebuild (agent default)
+
+When Quiet changes need to land in PTB (plugins, renderer, **main/patcher/CSP**, or after `build`), **always** run in order (user-authorized):
+
+```powershell
+cd C:\Projects\Quiet
+bun x pnpm@11.9.0 build
+bun x pnpm@11.9.0 sync:ptb
+bun x pnpm@11.9.0 start:ptb
+```
+
+- **Renderer-only** tweaks: `sync:ptb` + Ctrl+R can suffice; **main/patcher** changes require full quit + `start:ptb` (or the trio above).
+- Do **not** use `inject:ptb` for day-to-day dev unless installer/embed is broken.
 | `pnpm test` | buildStandalone + tsc + lint + plugin JSON |
 | `pnpm generatePluginJson` | Plugin list for site/docs |
 
