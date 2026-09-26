@@ -30,8 +30,7 @@ import { openPluginModal } from "@components/settings/tabs/plugins/PluginModal";
 import { settings as quietIdentitySettings } from "@plugins/quietIdentity/settings";
 import QuietPresencePlugin from "@plugins/quietPresence";
 import SettingsPlugin from "@plugins/_core/settings";
-import { CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
-import { gitRemote } from "@shared/vencordUserAgent";
+import { CLIENT_NAME, FORK_REPO, GITHUB_ORG_URL, UPSTREAM_NAME, WEBSITE_URL } from "@shared/brand";
 import { IS_WINDOWS } from "@utils/constants";
 import { Margins } from "@utils/margins";
 import { isPluginDev } from "@utils/misc";
@@ -273,8 +272,20 @@ function VencordSettings() {
                     <QuickAction
                         Icon={GithubIcon}
                         text="View Source Code"
-                        action={() => VencordNative.native.openExternal("https://github.com/" + gitRemote)}
+                        action={() => VencordNative.native.openExternal(`https://github.com/${FORK_REPO}`)}
                     />
+                    <QuickAction
+                        Icon={GithubIcon}
+                        text="QuietCord org"
+                        action={() => VencordNative.native.openExternal(GITHUB_ORG_URL)}
+                    />
+                    {WEBSITE_URL && (
+                        <QuickAction
+                            Icon={GithubIcon}
+                            text="About Quiet"
+                            action={() => VencordNative.native.openExternal(WEBSITE_URL)}
+                        />
+                    )}
                 </QuickActionCard>
             </section>
 

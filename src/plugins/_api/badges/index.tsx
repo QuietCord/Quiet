@@ -25,7 +25,7 @@ import { Heart } from "@components/Heart";
 import { CopyIcon, LinkIcon } from "@components/Icons";
 import DonateButton from "@components/settings/DonateButton";
 import { openContributorModal } from "@components/settings/tabs";
-import { BADGES_JSON_URL, CLIENT_NAME } from "@shared/brand";
+import { BADGES_JSON_URL, CLIENT_NAME, QUIET_CONTRIBUTOR_BADGE_URL } from "@shared/brand";
 import { Devs } from "@utils/constants";
 import { copyWithToast } from "@utils/discord";
 import { Logger } from "@utils/Logger";
@@ -34,7 +34,7 @@ import { shouldShowContributorBadge } from "@utils/misc";
 import definePlugin from "@utils/types";
 import { ContextMenuApi, Forms, Menu, Modal, openModal, Toasts, UserStore } from "@webpack/common";
 
-const CONTRIBUTOR_BADGE = "https://cdn.discordapp.com/emojis/1092089799109775453.png?size=64";
+const CONTRIBUTOR_BADGE = QUIET_CONTRIBUTOR_BADGE_URL;
 
 const ContributorBadge: ProfileBadge = {
     id: "vencord_contributor_badge",

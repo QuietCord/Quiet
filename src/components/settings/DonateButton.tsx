@@ -17,6 +17,7 @@
 */
 
 import { Heart } from "@components/Heart";
+import { GITHUB_ORG_URL } from "@shared/brand";
 import { ButtonProps } from "@vencord/discord-types";
 import { Button } from "@webpack/common";
 
@@ -30,11 +31,11 @@ export default function DonateButton({
             {...props}
             look={look}
             color={color}
-            onClick={() => VencordNative.native.openExternal("https://github.com/sponsors/Vendicated")}
+            onClick={() => VencordNative.native.openExternal(GITHUB_ORG_URL)}
             className="vc-donate-button"
         >
             <Heart />
-            Donate
+            QuietCord on GitHub
         </Button>
     );
 }

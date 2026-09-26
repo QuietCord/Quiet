@@ -17,6 +17,7 @@
 */
 
 import { IpcEvents } from "@shared/IpcEvents";
+import { FORK_REPO } from "@shared/brand";
 import { execFile as cpExecFile } from "child_process";
 import { ipcMain } from "electron";
 import { join } from "path";
@@ -40,13 +41,24 @@ function git(...args: string[]) {
 }
 
 async function getRepo() {
-    const res = await git("remote", "get-url", "origin");
-    return res.stdout.trim()
-        .replace(/git@(.+):/, "https://$1/")
-        .replace(/\.git$/, "");
+    try {
+        const res = await git("remote", "get-url", "origin");
+        return res.stdout.trim()
+            .replace(/git@(.+):/, "https://$1/")
+            .replace(/\.git$/, "");
+    } catch {
+        return `https://github.com/${FORK_REPO}`;
+    }
 }
 
 async function calculateGitChanges() {
+    try {
+        await git("rev-parse", "--git-dir");
+    } catch {
+        // Injected PTB copy is not a git checkout — update via rebuild/sync:ptb from dev clone.
+        return [];
+    }
+
     await git("fetch");
 
     const branch = (await git("branch", "--show-current")).stdout.trim();
