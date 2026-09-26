@@ -48,8 +48,8 @@ bun x pnpm@11.9.0 sync:ptb
 bun x pnpm@11.9.0 start:ptb
 ```
 
-- **Renderer-only** tweaks: `sync:ptb` + Ctrl+R can suffice; **main/patcher** changes require full quit + `start:ptb` (or the trio above).
-- Do **not** use `inject:ptb` for day-to-day dev unless installer/embed is broken.
+- **Renderer-only** tweaks: set `QUIET_KEEP_PTB=1` then `sync:ptb` + Ctrl+R (skip auto quit).
+- **`sync:ptb` / `start:ptb` / `inject:ptb`** close **DiscordPTB.exe** by default (`taskkill /T` + wait). Opt out: `QUIET_KEEP_PTB=1`.
 | `pnpm test` | buildStandalone + tsc + lint + plugin JSON |
 | `pnpm generatePluginJson` | Plugin list for site/docs |
 

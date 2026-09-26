@@ -14,6 +14,11 @@ export function logPtbOnlyScope() {
     console.log(`[Quiet] Discord PTB only (${PTB_ROOT}). Discord stable is not modified or closed.`);
 }
 
+/** Skip auto-quit when set (e.g. sync while PTB stays open for Ctrl+R only). */
+export function shouldKeepPtbRunning() {
+    return process.env.QUIET_KEEP_PTB === "1";
+}
+
 /** @returns {string[]} */
 export function getAllPtbResources() {
     if (!existsSync(PTB_ROOT)) throw new Error("Discord PTB not installed");
@@ -31,30 +36,71 @@ export function isWindowsProcessRunning(imageName) {
     if (process.platform !== "win32") return false;
     try {
         const out = execFileSync("tasklist", ["/FI", `IMAGENAME eq ${imageName}`, "/NH"], { encoding: "utf8" });
-        return out.includes(imageName);
+        return out.toLowerCase().includes(imageName.toLowerCase());
     } catch {
         return false;
     }
 }
 
-/** Warn if PTB is open; optionally quit PTB only when QUIET_QUIT_PTB=1 (never Discord.exe). */
+function sleepMs(ms) {
+    if (process.platform === "win32") {
+        try {
+            execFileSync("ping", ["127.0.0.1", "-n", "1", "-w", String(Math.max(1, ms))], { stdio: "ignore" });
+            return;
+        } catch { /* fall through */ }
+    }
+    const end = Date.now() + ms;
+    while (Date.now() < end) { /* busy */ }
+}
+
+/**
+ * Force-close Discord PTB only (never Discord.exe). Waits until the process is gone.
+ * @returns {boolean} true if PTB was running and is now closed (or was already closed)
+ */
+export function quitDiscordPtb(options = {}) {
+    const { timeoutMs = 15_000 } = options;
+
+    if (process.platform !== "win32") return false;
+
+    if (!isWindowsProcessRunning(PTB_EXE)) return false;
+
+    console.log(`[Quiet] Closing ${PTB_EXE} (Discord stable untouched)...`);
+    try {
+        execFileSync("taskkill", ["/IM", PTB_EXE, "/F", "/T"], { stdio: "ignore" });
+    } catch {
+        console.warn(`[Quiet] taskkill could not stop ${PTB_EXE}; close it from the tray and retry.`);
+        return false;
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        if (!isWindowsProcessRunning(PTB_EXE)) {
+            console.log("[Quiet] Discord PTB closed.");
+            return true;
+        }
+        sleepMs(250);
+    }
+
+    console.warn(`[Quiet] ${PTB_EXE} still running after ${timeoutMs}ms — close from tray manually.`);
+    return false;
+}
+
+/** Before inject/restore: quit PTB unless QUIET_KEEP_PTB=1. Legacy QUIET_QUIT_PTB=1 still forces quit. */
 export function handleDiscordPtbBeforePatch() {
     if (process.platform !== "win32") return;
 
-    if (isWindowsProcessRunning(PTB_EXE)) {
-        if (process.env.QUIET_QUIT_PTB === "1") {
-            console.log(`Closing ${PTB_EXE} only (Discord stable untouched)...`);
-            try {
-                execFileSync("taskkill", ["/IM", PTB_EXE, "/F"], { stdio: "inherit" });
-            } catch {
-                console.warn(`Could not close ${PTB_EXE}; close it from the tray and re-run.`);
-            }
-        } else {
-            console.warn(
-                `${PTB_EXE} is still running. Close Discord PTB from the tray (not Discord stable), ` +
-                "or set QUIET_QUIT_PTB=1 to quit PTB only before patching."
-            );
-        }
+    const forceQuit =
+        process.env.QUIET_QUIT_PTB === "1"
+        || !shouldKeepPtbRunning();
+
+    if (!isWindowsProcessRunning(PTB_EXE)) return;
+
+    if (forceQuit) {
+        quitDiscordPtb();
+    } else {
+        console.warn(
+            `${PTB_EXE} is still running. Set QUIET_KEEP_PTB=0 (default) to auto-close, or close PTB from the tray.`
+        );
     }
 }
 

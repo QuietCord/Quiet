@@ -3,6 +3,7 @@
 import { spawn } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
+import { quitDiscordPtb, shouldKeepPtbRunning } from "./discordPtb.mjs";
 
 const ptbRoot = join(process.env.LOCALAPPDATA ?? "", "DiscordPTB");
 const updateExe = join(ptbRoot, "Update.exe");
@@ -10,6 +11,10 @@ const updateExe = join(ptbRoot, "Update.exe");
 if (!existsSync(updateExe)) {
     console.error("Discord PTB not found:", updateExe);
     process.exit(1);
+}
+
+if (!shouldKeepPtbRunning()) {
+    quitDiscordPtb();
 }
 
 const env = { ...process.env, QUIET_DEV: "1" };
