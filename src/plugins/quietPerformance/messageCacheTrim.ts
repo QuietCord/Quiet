@@ -6,6 +6,7 @@
 
 import { MessageCache, SelectedChannelStore } from "@webpack/common";
 
+import { resolveMessageCacheCap } from "./engine/messageCacheV2";
 import { settings } from "./settings";
 
 type ChannelBucket = {
@@ -30,7 +31,6 @@ function channelMap(): Map<string, ChannelBucket> | null {
 export function trimInactiveMessageCaches() {
     if (!settings.store.trimMessageCache) return 0;
 
-    const cap = settings.store.messageCacheCap;
     const active = SelectedChannelStore.getChannelId();
     const map = channelMap();
     if (!map) return 0;
@@ -38,6 +38,7 @@ export function trimInactiveMessageCaches() {
     let trimmed = 0;
     for (const [channelId, bucket] of map) {
         if (channelId === active || !bucket?._array?.length) continue;
+        const cap = resolveMessageCacheCap(bucket._array.length, { channelId });
         const excess = bucket._array.length - cap;
         if (excess <= 0) continue;
 

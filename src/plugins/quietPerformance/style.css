@@ -135,3 +135,98 @@ html.vc-quiet-perf-no-effects * {
     pointer-events: none;
     opacity: 0.85;
 }
+
+.vc-quiet-perf-settings-extras {
+    margin-top: 12px;
+}
+
+.vc-quiet-perf-risk-card {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-accent);
+    background: var(--background-secondary);
+}
+
+.vc-quiet-perf-risk-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.vc-quiet-perf-risk {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.vc-quiet-perf-risk-safe { color: var(--text-positive); }
+.vc-quiet-perf-risk-caution { color: var(--status-warning); }
+.vc-quiet-perf-risk-risky { color: var(--status-danger); }
+.vc-quiet-perf-risk-experimental { color: var(--brand-experiment-500, var(--text-link)); }
+
+.vc-quiet-perf-risk-body,
+.vc-quiet-perf-risk-muted {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.vc-quiet-perf-risk-warn {
+    color: var(--status-warning);
+    font-size: 12px;
+}
+
+.vc-quiet-perf-recovery-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.vc-quiet-perf-section-gap {
+    margin-top: 16px !important;
+}
+
+html.vc-quiet-perf-background video {
+    animation-play-state: paused !important;
+}
+
+html.vc-quiet-perf-media-pressure video {
+    content-visibility: auto;
+}
+
+.vc-quiet-perf-expand-toggle {
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-accent);
+    background: var(--background-secondary-alt);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.vc-quiet-perf-expand-body {
+    padding: 0 10px 10px;
+}
+
+.vc-quiet-perf-detail-row {
+    display: block;
+    margin: 4px 0;
+    font-size: 12px;
+}
+
+.vc-quiet-perf-preset-list {
+    margin: 10px 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
+.vc-quiet-perf-preset-line {
+    margin: 4px 0;
+}

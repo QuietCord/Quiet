@@ -7,7 +7,15 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 
-import { getPresetPatch, isApplyingPreset, type PerformanceProfile,withPresetApply } from "./presets";
+import { LazyComponent } from "@utils/lazyReact";
+
+import { presetNeedsConfirmation } from "./presetRisk";
+
+import { getPresetPatch, isApplyingPreset, type PerformanceProfile, withPresetApply } from "./presets";
+
+const PerformanceSettingsExtras = LazyComponent(() =>
+    import("./PerformanceSettingsExtras").then(m => ({ default: m.PerformanceSettingsExtras })),
+);
 
 const CLASS = {
     motion: "vc-quiet-perf-motion",
@@ -39,11 +47,17 @@ function onContentToggle() {
     applyPerformanceClasses();
 }
 
+function onAdaptiveEngineChange() {
+    markCustomProfile();
+    (Vencord.Plugins.plugins.QuietPerformance as { syncAdaptiveEngine?: () => void; })?.syncAdaptiveEngine?.();
+}
+
 export function applyPerformanceProfile(profile: PerformanceProfile) {
     const patch = getPresetPatch(profile);
     if (!patch) return;
     Object.assign(settings.store, patch, { profile });
     applyPerformanceClasses();
+    (Vencord.Plugins.plugins.QuietPerformance as { syncAdaptiveEngine?: () => void; })?.syncAdaptiveEngine?.();
 }
 
 export const settings = definePluginSettings({
@@ -52,12 +66,19 @@ export const settings = definePluginSettings({
         description: "Balanced keeps chat media. Minimal strips embeds, attachments, stickers, member list, and reactions for the lowest RAM/CPU.",
         options: [
             { label: "Balanced (recommended)", value: "balanced", default: true },
+            { label: "Performance — fewer visuals, tiered cache", value: "performance" },
             { label: "Minimum — text-first Discord", value: "minimal" },
             { label: "Custom — you pick toggles below", value: "custom" },
         ],
         onChange(value: PerformanceProfile) {
             if (value === "custom") return;
-            withPresetApply(() => applyPerformanceProfile(value));
+            const previous = settings.store.profile;
+            if (!presetNeedsConfirmation(value)) {
+                withPresetApply(() => applyPerformanceProfile(value));
+                return;
+            }
+            settings.store.profile = previous;
+            void import("./openPresetConfirm").then(({ openPresetConfirmModal }) => openPresetConfirmModal(value));
         },
     },
     showUsagePill: {
@@ -133,10 +154,142 @@ export const settings = definePluginSettings({
     },
     messageCacheCap: {
         type: OptionType.SLIDER,
-        description: "Max messages kept per inactive channel (active channel unchanged). Lower = less RAM, more re-fetch when you switch back.",
+        description: "Legacy single cap when tiered cache is off. With tiered cache, inactive channels use the inactive slider below.",
         markers: [20, 35, 50, 75, 100, 150],
         default: 60,
         onChange: markCustomProfile,
+    },
+    messageCacheV2: {
+        type: OptionType.BOOLEAN,
+        description: "Caution — Tiered LRU caps: active channel high, recently visited medium, abandoned low. May re-fetch when returning to old channels.",
+        default: true,
+        onChange: onAdaptiveEngineChange,
+    },
+    activeChannelCacheCap: {
+        type: OptionType.SLIDER,
+        description: "Max messages kept for the channel you are viewing.",
+        markers: [80, 120, 150, 200, 250],
+        default: 150,
+        onChange: markCustomProfile,
+    },
+    recentChannelCacheCap: {
+        type: OptionType.SLIDER,
+        description: "Cap for the last few channels you visited (not the active one).",
+        markers: [40, 60, 75, 100, 120],
+        default: 75,
+        onChange: markCustomProfile,
+    },
+    inactiveChannelCacheCap: {
+        type: OptionType.SLIDER,
+        description: "Cap for channels you have not opened recently.",
+        markers: [20, 35, 50, 60, 80],
+        default: 60,
+        onChange: markCustomProfile,
+    },
+    abandonedChannelCacheCap: {
+        type: OptionType.SLIDER,
+        description: "Caution — Minimum cap for channels not visited in ~20 minutes (LRU tail).",
+        markers: [15, 25, 35, 50],
+        default: 25,
+        onChange: markCustomProfile,
+    },
+    adaptiveBackground: {
+        type: OptionType.BOOLEAN,
+        description: "Safe — When Discord loses focus or is hidden, pause motion/GIF autoplay via CSS. Does not affect voice or messages.",
+        default: true,
+        onChange: onAdaptiveEngineChange,
+    },
+    memoryPressureController: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental / Caution — Adaptive RAM tiers (elevated → pressure → high) with hysteresis. Incremental cache/media cleanup only.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    elevatedThresholdMb: {
+        type: OptionType.SLIDER,
+        description: "Enter elevated tier when total RAM exceeds this (MB).",
+        markers: [750, 850, 900, 950],
+        default: 850,
+        onChange: markCustomProfile,
+    },
+    pressureThresholdMb: {
+        type: OptionType.SLIDER,
+        description: "Enter pressure tier when total RAM exceeds this (MB).",
+        markers: [850, 950, 1000, 1050],
+        default: 950,
+        onChange: markCustomProfile,
+    },
+    highPressureThresholdMb: {
+        type: OptionType.SLIDER,
+        description: "Enter high tier when total RAM exceeds this (MB).",
+        markers: [1000, 1100, 1200, 1300],
+        default: 1100,
+        onChange: markCustomProfile,
+    },
+    hysteresisMb: {
+        type: OptionType.SLIDER,
+        description: "MB below a threshold before leaving that pressure tier (avoids flip-flopping).",
+        markers: [40, 60, 80, 100, 120],
+        default: 80,
+        onChange: markCustomProfile,
+    },
+    batchPresenceUpdates: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Reserved (presence batching disabled; it breaks PRESENCE_UPDATES). Use layout coalesce instead.",
+        default: false,
+        hidden: true,
+        onChange: onAdaptiveEngineChange,
+    },
+    batchTypingUpdates: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental / Caution — Typing visual batch (one rAF frame). Typing dots may lag ~1 frame. Does not change network state.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    channelLayoutCoalesce: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental / Caution — Coalesce UPDATE_CHANNEL_LIST_DIMENSIONS & UPDATE_CHANNEL_DIMENSIONS per frame (last state wins). May delay sidebar layout slightly.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    mediaVisibleOnly: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Pause off-screen videos and defer GIF paint until near viewport.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    reactMemoHotPath: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Enable React.memo wrappers on hot-path components (requires sub-toggles).",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    reactMemoMessage: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Memo Message when content/id/timestamps unchanged.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    reactMemoAvatar: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Memo Avatar when user/size/decoration unchanged.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    lifecycleDebug: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Track active setTimeout/setInterval counts (shown in profiler when enabled).",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    autoDisableExperimental: {
+        type: OptionType.BOOLEAN,
+        description: "Auto-disable experimental optimizations after repeated runtime errors (Patch Health / safety layer).",
+        default: true,
+    },
+    stage3Panel: {
+        type: OptionType.COMPONENT,
+        component: PerformanceSettingsExtras,
     },
     cdnPolicy: {
         type: OptionType.SELECT,

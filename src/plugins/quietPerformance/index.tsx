@@ -7,12 +7,20 @@
 import { isPluginEnabled } from "@api/PluginManager";
 import { Logger } from "@utils/Logger";
 import definePlugin, { type PluginNative } from "@utils/types";
+import { onceReady } from "@webpack";
 import { createRoot, showToast, Toasts } from "@webpack/common";
 
+import { copyBenchmarkToClipboard } from "./engine/benchmark";
+import { clearProfilerBaseline, copyComparisonToClipboard, saveProfilerBaseline } from "./engine/comparisonMode";
+import { markQuietPerfConnectionOpen, markQuietPerfPluginStart, markQuietPerfUiReady } from "./engine/startupProfile";
+import { markFluxBatchingConnectionReady } from "./engine/fluxBatching";
+import { startAdaptiveEngine, stopAdaptiveEngine, syncAdaptiveEngine as reloadAdaptiveEngine } from "./engine/index";
+import { noteChannelVisit } from "./engine/adaptiveBackground";
+import { resolveMessageCacheCap } from "./engine/messageCacheV2";
 import { trimInactiveMessageCaches } from "./messageCacheTrim";
 import { formatMetricsLine, readMetricsSnapshot } from "./metricsClient";
 import { logPatchHealth } from "./patchHealthReport";
-import { startProfiler, stopProfiler } from "./profiler/collector";
+import { startProfiler, stopProfiler, getProfilerSnapshot } from "./profiler/collector";
 import {
     applyPerformanceClasses,
     settings,
@@ -46,7 +54,12 @@ export default definePlugin({
     ),
 
     flux: {
-        CHANNEL_SELECT() {
+        CONNECTION_OPEN() {
+            markQuietPerfConnectionOpen();
+            markFluxBatchingConnectionReady();
+        },
+        CHANNEL_SELECT({ channelId }: { channelId?: string; }) {
+            noteChannelVisit(channelId ?? null);
             trimInactiveMessageCaches();
         },
     },
@@ -131,17 +144,17 @@ export default definePlugin({
             predicate: () => settings.store.trimMessageCache,
             replacement: {
                 match: /this\.truncateTop\((\i)\)/g,
-                replace: "this.truncateTop($self.effectiveCacheCap($1))",
+                replace: "this.truncateTop($self.effectiveCacheCapFor(this,$1))",
             },
         },
     ],
 
+    effectiveCacheCapFor(bucket: { channelId?: string; }, limit: number) {
+        return resolveMessageCacheCap(limit, bucket);
+    },
+
     effectiveCacheCap(limit: number) {
-        if (!settings.store.trimMessageCache) return limit;
-        const cap = settings.store.messageCacheCap;
-        const n = Number(limit);
-        if (Number.isFinite(n)) return Math.min(n, cap);
-        return cap;
+        return resolveMessageCacheCap(limit);
     },
 
     shouldStripRender(renderCall: string, message: { id?: string; }) {
@@ -166,12 +179,41 @@ export default definePlugin({
                 report.broken.length ? Toasts.Type.MESSAGE : Toasts.Type.SUCCESS,
             );
         },
+        "Export benchmark JSON": async () => {
+            await copyBenchmarkToClipboard();
+            showToast("Benchmark snapshot copied to clipboard", Toasts.Type.SUCCESS);
+        },
+        "Save profiler baseline": async () => {
+            const snap = await getProfilerSnapshot();
+            saveProfilerBaseline("manual", snap);
+            showToast("Profiler baseline saved for comparison", Toasts.Type.SUCCESS);
+        },
+        "Export ON/OFF comparison": async () => {
+            const snap = await getProfilerSnapshot();
+            await copyComparisonToClipboard(snap, settings.store.channelLayoutCoalesce ? "channelLayoutCoalesce" : "custom");
+            showToast("Comparison JSON copied (needs baseline first)", Toasts.Type.MESSAGE);
+        },
+        "Clear profiler baseline": () => {
+            clearProfilerBaseline();
+            showToast("Profiler baseline cleared", Toasts.Type.SUCCESS);
+        },
+    },
+
+    syncAdaptiveEngine() {
+        reloadAdaptiveEngine();
     },
 
     start() {
+        markQuietPerfPluginStart();
+        void onceReady.then(() => markQuietPerfUiReady());
+        const legacy = settings.store as Record<string, unknown>;
+        if (legacy.batchLayoutUpdates && !settings.store.channelLayoutCoalesce) {
+            settings.store.channelLayoutCoalesce = !!legacy.batchLayoutUpdates;
+        }
         applyPerformanceClasses();
         mountUsageOverlay();
         syncProfiler();
+        startAdaptiveEngine();
 
         if (isPluginEnabled("AlwaysAnimate"))
             logger.warn("AlwaysAnimate is on — disable it for full motion savings.");
@@ -185,6 +227,7 @@ export default definePlugin({
     },
 
     stop() {
+        stopAdaptiveEngine();
         stopProfiler();
         unmountUsageOverlay();
         document.documentElement.className = document.documentElement.className

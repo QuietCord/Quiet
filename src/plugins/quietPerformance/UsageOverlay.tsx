@@ -4,11 +4,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { LazyComponent } from "@utils/lazyReact";
 import { useEffect, useState } from "@webpack/common";
 
 import { formatMetricsLine, readMetricsSnapshot, SAMPLER_MS } from "./metricsClient";
-import { ProfilerPanel } from "./profiler/ProfilerPanel";
 import { settings } from "./settings";
+
+const ProfilerPanel = LazyComponent(() =>
+    import("./profiler/ProfilerPanel").then(m => ({ default: m.ProfilerPanel })),
+);
 
 export function UsageOverlay() {
     const [line, setLine] = useState("…");

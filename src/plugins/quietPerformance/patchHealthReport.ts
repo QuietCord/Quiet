@@ -8,6 +8,7 @@ import { getBrokenPatches, getPatchHealthForPlugin } from "@shared/quietPatchHea
 import { Logger } from "@utils/Logger";
 import { getBuildNumber } from "@webpack/patcher";
 
+import { recordOptimizationError } from "./engine/optimizationSafety";
 import { settings } from "./settings";
 
 const logger = new Logger("QuietPerformance/Patches");
@@ -26,6 +27,9 @@ export function logPatchHealth(plugin = "QuietPerformance") {
 
     if ((IS_DEV || settings.store.patchDiagnostics) && broken.length) {
         logger.warn(`${broken.length} QuietPerformance patch(es) failed after Discord update`, broken);
+        for (const row of broken) {
+            recordOptimizationError(`patch:${row.patchId}`, row.error ?? row.status);
+        }
     }
 
     return { discordBuild, rows, broken };

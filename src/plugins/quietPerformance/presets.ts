@@ -6,7 +6,7 @@
 
 import { expectPatch } from "@shared/quietPatchHealth";
 
-export type PerformanceProfile = "balanced" | "minimal" | "custom";
+export type PerformanceProfile = "balanced" | "performance" | "minimal" | "custom";
 export type CdnPolicy = "normal" | "efficient" | "textOnly";
 
 export const PRESET_BALANCED = {
@@ -29,6 +29,49 @@ export const PRESET_BALANCED = {
     cdnPolicy: "efficient" as CdnPolicy,
     trimMessageCache: true,
     messageCacheCap: 60,
+    messageCacheV2: true,
+    activeChannelCacheCap: 150,
+    recentChannelCacheCap: 75,
+    inactiveChannelCacheCap: 60,
+    abandonedChannelCacheCap: 25,
+    adaptiveBackground: true,
+    memoryPressureController: false,
+    batchPresenceUpdates: false,
+    batchTypingUpdates: false,
+    channelLayoutCoalesce: false,
+    rasterThreads: "auto",
+} as const;
+
+export const PRESET_PERFORMANCE = {
+    stripEmbeds: false,
+    stripAttachments: false,
+    stripStickers: false,
+    pauseGifAutoplay: true,
+    compactChat: false,
+    hideMemberList: false,
+    hideReactions: false,
+    hideChatAvatars: false,
+    lazyMessagePaint: true,
+    stripDecorations: true,
+    liteChromium: true,
+    freezeMotion: true,
+    disableBlur: true,
+    disableSpellcheck: true,
+    aggressiveMemory: false,
+    disableGpu: false,
+    cdnPolicy: "efficient" as CdnPolicy,
+    trimMessageCache: true,
+    messageCacheCap: 50,
+    messageCacheV2: true,
+    activeChannelCacheCap: 120,
+    recentChannelCacheCap: 60,
+    inactiveChannelCacheCap: 40,
+    abandonedChannelCacheCap: 20,
+    adaptiveBackground: true,
+    memoryPressureController: false,
+    batchPresenceUpdates: false,
+    batchTypingUpdates: false,
+    channelLayoutCoalesce: false,
     rasterThreads: "auto",
 } as const;
 
@@ -52,6 +95,16 @@ export const PRESET_MINIMAL = {
     cdnPolicy: "textOnly" as CdnPolicy,
     trimMessageCache: true,
     messageCacheCap: 35,
+    messageCacheV2: true,
+    activeChannelCacheCap: 80,
+    recentChannelCacheCap: 40,
+    inactiveChannelCacheCap: 25,
+    abandonedChannelCacheCap: 15,
+    adaptiveBackground: true,
+    memoryPressureController: false,
+    batchPresenceUpdates: false,
+    batchTypingUpdates: false,
+    channelLayoutCoalesce: false,
     rasterThreads: "auto",
 } as const;
 
@@ -72,6 +125,7 @@ export function withPresetApply<T>(fn: () => T): T {
 
 export function getPresetPatch(profile: PerformanceProfile) {
     if (profile === "minimal") return PRESET_MINIMAL;
+    if (profile === "performance") return PRESET_PERFORMANCE;
     if (profile === "balanced") return PRESET_BALANCED;
     return null;
 }
