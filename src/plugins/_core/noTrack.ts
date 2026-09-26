@@ -83,6 +83,13 @@ export default definePlugin({
 
     startAt: StartAt.Init,
     start() {
+        const expectedSentryMsg = "Sentry successfully disabled";
+        window.addEventListener("error", ev => {
+            if (ev.error?.name === "NoTrackExpected" || ev.message === expectedSentryMsg) {
+                ev.preventDefault();
+            }
+        }, true);
+
         // Sentry is initialized in its own WebpackInstance.
         // It has everything it needs preloaded, so, it doesn't include any chunk loading functionality.
         // Because of that, its WebpackInstance doesnt export wreq.m or wreq.c
@@ -127,7 +134,10 @@ export default definePlugin({
                 Reflect.deleteProperty(Function.prototype, "d");
                 Reflect.deleteProperty(window, "DiscordSentry");
 
-                throw new Error("Sentry successfully disabled");
+                // Abort Sentry webpack init (required). Mark expected so DevTools does not show a scary uncaught error.
+                const err = new Error("Sentry successfully disabled");
+                err.name = "NoTrackExpected";
+                throw err;
             }
         });
 

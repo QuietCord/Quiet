@@ -22,7 +22,7 @@ const MODES = [
     { label: "Toggle side panel", value: "toggle" },
     { label: "Open current channel in side", value: "open" },
     { label: "Close side panel", value: "close" },
-    { label: "Swap main ↔ side", value: "swap" },
+    { label: "Move side to main (close panel)", value: "swap" },
     { label: "Toggle pin", value: "pin" },
     { label: "Restore previous side channel", value: "previous" },
 ] as const;

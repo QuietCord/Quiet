@@ -9,6 +9,7 @@ import { Tooltip } from "@webpack/common";
 import { useEffect, useState } from "@webpack/common";
 
 import { getFocusSession, remainingMs, subscribeFocusSession, toggleFocus } from "./focusState";
+import { FocusMoonGlyph } from "./FocusMoonIcon";
 import { settings } from "./settings";
 
 function formatRemaining(ms: number | null) {
@@ -39,9 +40,7 @@ export const FocusChatBarButton: ChatBarButtonFactory = ErrorBoundary.wrap(funct
                         style: session.active ? { color: "var(--brand-experiment)" } : undefined,
                     }}
                 >
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden>
-                        <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Zm.5-13H11v6l5.25 3.15.75-1.23-4-2.37V7Z" />
-                    </svg>
+                    <FocusMoonGlyph active={session.active} />
                 </ChatBarButton>
             )}
         </Tooltip>

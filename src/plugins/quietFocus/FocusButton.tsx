@@ -8,6 +8,7 @@ import { Tooltip } from "@webpack/common";
 import { useEffect, useState } from "@webpack/common";
 
 import { getFocusSession, remainingMs, startFocus, subscribeFocusSession, toggleFocus } from "./focusState";
+import { FocusMoonGlyph } from "./FocusMoonIcon";
 import { settings } from "./settings";
 
 function formatRemaining(ms: number | null) {
@@ -15,16 +16,6 @@ function formatRemaining(ms: number | null) {
     const min = Math.ceil(ms / 60_000);
     if (min < 60) return `${min}m left`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
-}
-
-function FocusIcon({ active }: { active: boolean; }) {
-    return (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            {active
-                ? <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Zm1-13h-2v6l5.25 3.15.75-1.23-4-2.37Z" />
-                : <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Zm.5-13H11v6l5.25 3.15.75-1.23-4-2.37V7Z" />}
-        </svg>
-    );
 }
 
 export const FocusModeButton = ErrorBoundary.wrap(function FocusModeButton() {
@@ -68,7 +59,7 @@ export const FocusModeButton = ErrorBoundary.wrap(function FocusModeButton() {
                         }
                     }}
                 >
-                    <FocusIcon active={active} />
+                    <FocusMoonGlyph active={active} />
                 </div>
             )}
         </Tooltip>

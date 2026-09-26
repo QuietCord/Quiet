@@ -82,7 +82,7 @@ export default definePlugin({
     ],
 
     toolboxActions: {
-        "Swap main ↔ side"() {
+        "Move side to main"() {
             swapSplitWithMain();
         },
         "Close Quiet Sideview"() {

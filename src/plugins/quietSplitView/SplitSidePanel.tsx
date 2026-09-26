@@ -99,7 +99,7 @@ function SplitHeader({ guild, channel }: { guild: Guild | null; channel: Channel
         <HeaderBar
             toolbar={(
                 <>
-                    <ToolbarIcon label="Swap main and side" onClick={onSwap}>
+                    <ToolbarIcon label="Move to main chat and close side" onClick={onSwap}>
                         <SwapChannelsIcon />
                     </ToolbarIcon>
                     <ToolbarIcon label={pinned ? "Unpin side panel" : "Pin side panel"} onClick={onPin}>
