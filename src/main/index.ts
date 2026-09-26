@@ -23,6 +23,7 @@ import { join } from "path";
 import { pathToFileURL } from "url";
 
 import { initCsp } from "./csp";
+import { CLIENT_NAME } from "@shared/brand";
 import { RendererSettings } from "./settings";
 import { IS_VANILLA, THEMES_DIR } from "./utils/constants";
 import { ensureSafePath } from "./utils/ensureSafePath";
@@ -69,8 +70,8 @@ if (IS_VESKTOP || !IS_VANILLA) {
         try {
             if (RendererSettings.store.enableReactDevtools)
                 installExt("fmkadmapgofadopljbjfkapdkoienihi")
-                    .then(() => console.info("[Vencord] Installed React Developer Tools"))
-                    .catch(err => console.error("[Vencord] Failed to install React Developer Tools", err));
+                    .then(() => console.info(`[${CLIENT_NAME}] Installed React Developer Tools`))
+                    .catch(err => console.error(`[${CLIENT_NAME}] Failed to install React Developer Tools`, err));
         } catch { }
 
 

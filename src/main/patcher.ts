@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { CLIENT_NAME } from "@shared/brand";
 import { onceDefined } from "@shared/onceDefined";
 import electron, { app, BrowserWindowConstructorOptions, Menu } from "electron";
 import { dirname, join } from "path";
@@ -23,7 +24,7 @@ import { dirname, join } from "path";
 import { RendererSettings } from "./settings";
 import { IS_VANILLA } from "./utils/constants";
 
-console.log("[Vencord] Starting up...");
+console.log(`[${CLIENT_NAME}] Starting up...`);
 
 if (!IS_VANILLA) {
     process.env.QUIET_DEV ??= "1";
@@ -139,8 +140,8 @@ if (!IS_VANILLA) {
 
     process.env.DATA_DIR = join(app.getPath("userData"), "..", "Vencord");
 } else {
-    console.log("[Vencord] Running in vanilla mode. Not loading Vencord");
+    console.log(`[${CLIENT_NAME}] Running in vanilla mode. Not loading ${CLIENT_NAME}`);
 }
 
-console.log("[Vencord] Loading original Discord app.asar");
+console.log(`[${CLIENT_NAME}] Loading original Discord app.asar`);
 require(require.main!.filename);

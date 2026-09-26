@@ -28,7 +28,7 @@ import { Heart } from "@components/Heart";
 import { CopyIcon, LinkIcon } from "@components/Icons";
 import DonateButton from "@components/settings/DonateButton";
 import { openContributorModal } from "@components/settings/tabs";
-import { BADGES_JSON_URL, CLIENT_NAME } from "@shared/brand";
+import { BADGES_JSON_URL, CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
 import { contributorBadgeDataUrl } from "@shared/brandAssets";
 import { Devs } from "@utils/constants";
 import { copyWithToast } from "@utils/discord";
@@ -236,7 +236,7 @@ export default definePlugin({
                                 >
                                     <Flex justifyContent="center" alignItems="center" gap="0.5em">
                                         <Heart />
-                                        Vencord Donor
+                                        {UPSTREAM_NAME} Donor
                                     </Flex>
                                 </Forms.FormTitle>
                             }
@@ -258,10 +258,10 @@ export default definePlugin({
                                 </Flex>
                                 <div style={{ padding: "1em" }}>
                                     <Forms.FormText>
-                                        This Badge is a special perk for Vencord Donors
+                                        This badge is a special perk for {UPSTREAM_NAME} donors (upstream project).
                                     </Forms.FormText>
                                     <Forms.FormText className={Margins.top20}>
-                                        Please consider supporting the development of Vencord by becoming a donor. It would mean a lot!!
+                                        Please consider supporting the development of {UPSTREAM_NAME} by becoming a donor on GitHub Sponsors.
                                     </Forms.FormText>
                                 </div>
                             </div>

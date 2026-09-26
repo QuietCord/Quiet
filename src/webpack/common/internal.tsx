@@ -17,6 +17,7 @@
 */
 
 import { Logger } from "@utils/Logger";
+import { CLIENT_NAME } from "@shared/brand";
 import { LazyComponent, LazyComponentWrapper } from "@utils/react";
 import { FilterFn, filters, lazyWebpackSearchHistory, waitFor } from "@webpack";
 import { ComponentType } from "react";
@@ -31,7 +32,7 @@ export function waitForComponent<T extends ComponentType<any> = ComponentType<an
     const lazyComponent = LazyComponent(() => {
         if (myValue) return myValue;
 
-        const error = new Error(`Vencord could not find the ${name} Component`);
+        const error = new Error(`${CLIENT_NAME} could not find the ${name} Component`);
         logger.error(error);
 
         if (IS_DEV) throw error;

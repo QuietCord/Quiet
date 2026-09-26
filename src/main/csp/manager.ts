@@ -5,6 +5,7 @@
  */
 
 import { NativeSettings } from "@main/settings";
+import { CLIENT_NAME } from "@shared/brand";
 import { IpcEvents } from "@shared/IpcEvents";
 import { dialog, ipcMain, IpcMainInvokeEvent } from "electron";
 
@@ -82,7 +83,7 @@ async function addCspRule(_: IpcMainInvokeEvent, url: string, directives: string
     const { checkboxChecked, response } = await dialog.showMessageBox({
         ...getMessage(url, directives, callerName),
         type: callerName ? "info" : "warning",
-        title: "Vencord Host Permissions",
+        title: `${CLIENT_NAME} Host Permissions`,
         buttons: ["Cancel", "Allow"],
         defaultId: 0,
         cancelId: 0,

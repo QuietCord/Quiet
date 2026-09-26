@@ -21,6 +21,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { ErrorCard } from "@components/ErrorCard";
 import { Flex } from "@components/Flex";
 import { Paragraph } from "@components/Paragraph";
+import { CLIENT_NAME } from "@shared/brand";
 import { Devs, IS_MAC } from "@utils/constants";
 import { Margins } from "@utils/margins";
 import definePlugin from "@utils/types";
@@ -141,7 +142,7 @@ export default definePlugin({
                 </Paragraph>
 
                 <Paragraph>
-                    Only use experiments if you know what you're doing. Vencord is not responsible for any damage caused by enabling experiments.
+                    Only use experiments if you know what you're doing. {CLIENT_NAME} is not responsible for any damage caused by enabling experiments.
 
                     If you don't know what an experiment does, ignore it. Do not ask us what experiments do either, we probably don't know.
                 </Paragraph>

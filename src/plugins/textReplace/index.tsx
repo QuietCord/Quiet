@@ -19,6 +19,7 @@
 import "./styles.css";
 
 import { definePluginSettings } from "@api/Settings";
+import { UPSTREAM_NAME } from "@shared/brand";
 import { Button } from "@components/Button";
 import { ExpandableSection } from "@components/ExpandableCard";
 import { Flex } from "@components/Flex";
@@ -386,7 +387,7 @@ function applyRules(content: string): string {
 const TEXT_REPLACE_RULES_CHANNEL_ID = "1102784112584040479";
 export default definePlugin({
     name: "TextReplace",
-    description: "Replace text in your messages. You can find pre-made rules in the #textreplace-rules channel in Vencord's Server",
+    description: `Replace text in your messages. You can find pre-made rules in the #textreplace-rules channel in the ${UPSTREAM_NAME} Discord server`,
     tags: ["Chat", "Customisation", "Utility"],
     authors: [Devs.AutumnVN, Devs.TheKodeToad],
 

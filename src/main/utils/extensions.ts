@@ -23,6 +23,7 @@ import { access, mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 
 import { DATA_DIR } from "./constants";
+import { VENCORD_USER_AGENT } from "@shared/vencordUserAgent";
 import { crxToZip } from "./crxToZip";
 import { ensureSafePath } from "./ensureSafePath";
 import { fetchBuffer } from "./http";
@@ -83,7 +84,7 @@ export async function installExt(id: string) {
 
         const buf = await fetchBuffer(url, {
             headers: {
-                "User-Agent": `Electron ${process.versions.electron} ~ Vencord (https://github.com/Vendicated/Vencord)`
+                "User-Agent": `Electron ${process.versions.electron} ~ ${VENCORD_USER_AGENT}`
             }
         });
 

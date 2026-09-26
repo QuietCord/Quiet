@@ -178,7 +178,7 @@ function QuietPresenceSection() {
         <section className={Margins.top16}>
             <Forms.FormTitle tag="h5">Quiet Presence</Forms.FormTitle>
             <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-muted)" }}>
-                Rich Presence visible to everyone (same mechanism as Vencord CustomRPC). Only one custom activity plugin should be active.
+                Rich Presence visible to everyone (same mechanism as {UPSTREAM_NAME} CustomRPC). Only one custom activity plugin should be active.
             </Forms.FormText>
             {customRpcOn && (
                 <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-warning)" }}>

@@ -8,7 +8,7 @@ import { getUserSettingLazy } from "@api/UserSettings";
 import { Divider } from "@components/Divider";
 import { ErrorCard } from "@components/ErrorCard";
 import { Link } from "@components/Link";
-import { CLIENT_NAME } from "@shared/brand";
+import { CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { useAwaiter } from "@utils/react";
@@ -95,7 +95,8 @@ export default definePlugin({
                 )}
 
                 <Forms.FormText className={Margins.top8}>
-                    Based on Vencord <Link href="https://github.com/Vendicated/Vencord/tree/main/src/plugins/customRPC">CustomRPC</Link>.
+                    Based on {UPSTREAM_NAME}{" "}
+                    <Link href="https://github.com/Vendicated/Vencord/tree/main/src/plugins/customRPC">CustomRPC</Link>.
                     Upload <code>assets/brand/logo.png</code> to your Discord app as asset key <code>quiet</code>.
                 </Forms.FormText>
 

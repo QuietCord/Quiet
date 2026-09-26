@@ -21,6 +21,8 @@ import EventEmitter from "events";
 import { copyFileSync, existsSync, readdirSync, renameSync } from "original-fs";
 import { basename, dirname, join } from "path";
 
+import { CLIENT_NAME } from "@shared/brand";
+
 function isNewer($new: string, old: string) {
     const newParts = $new.slice(4).split(".").map(Number);
     const oldParts = old.slice(4).split(".").map(Number);
@@ -57,12 +59,12 @@ function patchLatest() {
 
         if (!existsSync(oldVencordAsar) || !existsSync(newAppAsar) || existsSync(newAppAsarBackup)) return;
 
-        console.info(`[Vencord] Detected Host Update (${currentVersion} -> ${latestVersion}). Repatching...`);
+        console.info(`[${CLIENT_NAME}] Detected Host Update (${currentVersion} -> ${latestVersion}). Repatching...`);
 
         renameSync(newAppAsar, newAppAsarBackup);
         copyFileSync(oldVencordAsar, newAppAsar);
     } catch (err) {
-        console.error("[Vencord] Failed to repatch latest host update", err);
+        console.error(`[${CLIENT_NAME}] Failed to repatch latest host update`, err);
     }
 }
 

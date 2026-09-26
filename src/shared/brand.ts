@@ -51,6 +51,7 @@ export const QUIET_DEV_REPO_PATH = "C:/Projects/Quiet";
 /** Public site for Quiet (org / repo landing until a dedicated site exists). */
 export const WEBSITE_URL = "https://github.com/QuietCord/Quiet";
 export const PLUGIN_DOCS_BASE = "";
+export const CLIENT_SOURCE_URL = `https://github.com/${FORK_REPO}`;
 export const CLOUD_PRIVACY_URL = "https://github.com/QuietCord/Backend/blob/main/docs/CLOUD-PRIVACY.md";
 export const CLOUD_BACKEND_SOURCE_URL = `https://github.com/${BACKEND_REPO}`;
 

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { UPSTREAM_NAME } from "@shared/brand";
+
 export interface RotationLine {
     /** First line under the app name (max 128 chars) */
     details: string;
@@ -16,7 +18,7 @@ export interface RotationLine {
 export const ROTATION_LINES: RotationLine[] = [
     { details: "Dev by hyusband", state: "Quiet · Discord PTB" },
     { details: "Personal Discord client", state: "via Quiet" },
-    { details: "Fork of Vencord", state: "github.com/QuietCord/Quiet" },
+    { details: `Fork of ${UPSTREAM_NAME}`, state: "github.com/QuietCord/Quiet" },
     { details: "Modded with care", state: "hyusband on GitHub" },
     { details: "Cat in a box energy", state: "Rich Presence enabled" },
 ];
