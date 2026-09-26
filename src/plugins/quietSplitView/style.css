@@ -1,0 +1,42 @@
+/*
+ * Quiet — Split View layout
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+[class*="content"] > [class*="page"] > * {
+    min-width: 0;
+}
+
+.vc-quiet-split-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    background: var(--background-primary);
+}
+
+.vc-quiet-split-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.vc-quiet-split-toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 2px;
+    border-radius: 4px;
+    color: var(--interactive-normal);
+}
+
+.vc-quiet-split-toolbar-btn:hover {
+    color: var(--interactive-hover);
+    background: var(--background-modifier-hover);
+}
