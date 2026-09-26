@@ -37,7 +37,7 @@ import { ContextMenuApi, Forms, Menu, Modal, openModal, Toasts, UserStore } from
 const CONTRIBUTOR_BADGE = QUIET_CONTRIBUTOR_BADGE_URL;
 
 const ContributorBadge: ProfileBadge = {
-    id: "vencord_contributor_badge",
+    id: "quiet_contributor_badge",
     description: `${CLIENT_NAME} Contributor`,
     iconSrc: CONTRIBUTOR_BADGE,
     position: BadgePosition.START,

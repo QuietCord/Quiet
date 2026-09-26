@@ -29,7 +29,7 @@ export const BADGES_JSON_URL =
 
 /** Profile badge icon for QuietCord contributors (cat-in-box). */
 export const QUIET_CONTRIBUTOR_BADGE_URL =
-    "https://raw.githubusercontent.com/QuietCord/Quiet/main/assets/brand/logo.png";
+    "https://raw.githubusercontent.com/QuietCord/Quiet/main/assets/brand/contributor-badge.png";
 
 /** Pixel-art cat-in-box logo — see assets/brand/ */
 export const CLIENT_LOGO_SOURCE = "";
