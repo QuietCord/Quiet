@@ -98,8 +98,12 @@ export async function authorizeCloud() {
 
     try {
         const oauthConfiguration = await fetch(new URL("/v1/oauth/settings", getCloudUrl()));
+        if (!oauthConfiguration.ok) {
+            throw new Error(`HTTP ${oauthConfiguration.status}`);
+        }
         var { clientId, redirectUri } = await oauthConfiguration.json();
-    } catch {
+    } catch (e) {
+        logger.error("OAuth settings fetch failed", e);
         showNotification({
             title: "Cloud Integration",
             body: "Setup failed (couldn't retrieve OAuth configuration)."

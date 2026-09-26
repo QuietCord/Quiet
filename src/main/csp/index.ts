@@ -5,6 +5,7 @@
  */
 
 import { NativeSettings } from "@main/settings";
+import { CLOUD_API_URL } from "@shared/brand";
 import { session } from "electron";
 
 type PolicyMap = Record<string, string[]>;
@@ -61,6 +62,7 @@ export const CspPolicies: PolicyMap = {
     "*.archive.org": ConnectSrc,
     "translate-pa.googleapis.com": ConnectSrc, // Google Translate API
     "*.vencord.dev": ImageSrc, // VenCloud (api.vencord.dev) and Badges (badges.vencord.dev)
+    "*.containers.snapdeploy.app": ConnectSrc, // QuietCord cloud API on SnapDeploy
     "manti.vendicated.dev": ImageSrc, // ReviewDB API
     "decor.fieryflames.dev": ConnectSrc, // Decor API
     "ugc.decor.fieryflames.dev": ImageSrc, // Decor CDN
@@ -127,6 +129,13 @@ const patchCsp = (headers: PolicyMap) => {
                 pushDirective(directive, host);
             }
         }
+
+        try {
+            const cloudHost = new URL(CLOUD_API_URL).host;
+            if (cloudHost) {
+                pushDirective("connect-src", `https://${cloudHost}`);
+            }
+        } catch { /* invalid brand URL */ }
 
         for (const [host, directives] of Object.entries(CspPolicies)) {
             for (const directive of directives) {
