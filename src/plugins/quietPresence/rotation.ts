@@ -16,7 +16,7 @@ export interface RotationLine {
 export const ROTATION_LINES: RotationLine[] = [
     { details: "Dev by hyusband", state: "Quiet · Discord PTB" },
     { details: "Personal Discord client", state: "via Quiet" },
-    { details: "Fork of Vencord", state: "github.com/hyusband/Quiet" },
+    { details: "Fork of Vencord", state: "github.com/QuietCord/Quiet" },
     { details: "Modded with care", state: "hyusband on GitHub" },
     { details: "Cat in a box energy", state: "Rich Presence enabled" },
 ];

@@ -19,6 +19,7 @@ import { QUIET_RPC_APP_ID } from "@shared/brand";
 
 import { SETUP_STEPS } from "./defaults";
 import { DEV_OVERLAY_LINES } from "./devOverlay";
+import { getCachedDevGitContext } from "./smartDev";
 import { restartPresenceRotation } from "./rotationTimer";
 import { ROTATION_LINES } from "./rotation";
 import { setQuietPresence } from "./rpc";
@@ -80,7 +81,8 @@ function SingleSetting({ settingsKey, label, isValid, disabled }: TextOption) {
 }
 
 export function QuietPresenceSettings() {
-    const s = settings.use(["type", "timestampMode", "rotateEnabled", "rotateIntervalSec", "devOverlayEnabled"]);
+    const s = settings.use(["type", "timestampMode", "rotateEnabled", "rotateIntervalSec", "devOverlayEnabled", "devOverlayAuto"]);
+    const gitCtx = getCachedDevGitContext();
 
     return (
         <div className={cl("root")}>
@@ -107,6 +109,22 @@ export function QuietPresenceSettings() {
 
             <Divider />
 
+            <FormSwitch
+                title="Auto dev overlay"
+                description="Enable dev card when QUIET_DEV=1 or git repo exists at QUIET_DEV_REPO_PATH / QUIET_REPO_PATH"
+                value={s.devOverlayAuto !== false}
+                onChange={v => {
+                    settings.store.devOverlayAuto = v;
+                    updatePresence();
+                }}
+            />
+            {gitCtx && (
+                <Text variant="text-sm/normal" className={cl("error")} style={{ color: "var(--text-muted)" }}>
+                    Detected: {gitCtx.active ? "dev mode" : "off"}
+                    {gitCtx.branch ? ` · branch ${gitCtx.branch}` : ""}
+                    {gitCtx.repoPath ? ` · ${gitCtx.repoPath}` : ""}
+                </Text>
+            )}
             <FormSwitch
                 title="Dev overlay (only you)"
                 description="Extra rotating card on your profile — not sent to Discord; friends never see it"

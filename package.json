@@ -3,13 +3,13 @@
     "private": "true",
     "version": "1.15.7",
     "description": "Quiet — personal Discord client mod (Vencord fork)",
-    "homepage": "https://github.com/hyusband/Quiet#readme",
+    "homepage": "https://github.com/QuietCord/Quiet#readme",
     "bugs": {
-        "url": "https://github.com/hyusband/Quiet/issues"
+        "url": "https://github.com/QuietCord/Quiet/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hyusband/Quiet.git"
+        "url": "git+https://github.com/QuietCord/Quiet.git"
     },
     "license": "GPL-3.0-or-later",
     "author": "hyusband",
@@ -22,12 +22,14 @@
         "buildReporterDesktop": "pnpm build --reporter",
         "watch": "pnpm build --watch",
         "dev": "pnpm watch",
+        "dev:ptb": "node scripts/devPtb.mjs",
         "watchWeb": "pnpm buildWeb --watch",
         "generatePluginJson": "tsx scripts/generatePluginList.ts",
         "generateTypes": "tspc --emitDeclarationOnly --declaration --outDir packages/vencord-types --allowJs false",
         "inject": "node scripts/runInstaller.mjs -- --install",
         "inject:ptb": "node scripts/installEmbeddedPtb.mjs",
         "sync:ptb": "node scripts/syncEmbeddedPtb.mjs",
+        "start:ptb": "node scripts/startPtbDev.mjs",
         "verify:ptb": "node scripts/verifyPtbPatch.mjs",
         "restore:ptb": "node scripts/restorePtbVanilla.mjs",
         "inject:dev": "cross-env QUIET_DEV_INSTALL=1 node scripts/runInstaller.mjs -- --install",

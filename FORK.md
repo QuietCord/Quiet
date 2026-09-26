@@ -1,5 +1,7 @@
 # Quiet — fork de Vencord
 
+**Org:** [QuietCord](https://github.com/QuietCord) · Client: [QuietCord/Quiet](https://github.com/QuietCord/Quiet) · API: [QuietCord/Backend](https://github.com/QuietCord/Backend)
+
 Quiet es un fork personal basado en [Vencord](https://github.com/Vendicated/Vencord) (GPL-3.0). El código interno sigue usando el global `Vencord`, rutas `vencord://`, claves `Vencord_*` en almacenamiento, etc., para poder **fusionar upstream** con pocos conflictos.
 
 ## Branding
@@ -44,6 +46,19 @@ Si `BADGES_JSON_URL` está vacío, no se cargan badges externos de Vencord. Sirv
 
 Igual que Vencord: `pnpm install`, `pnpm build`.
 
+**pnpm sin instalación global (Bun):** `bun install -g pnpm` o usa siempre `bunx pnpm@11.9.0` (coincide con `packageManager` del repo). Ejemplo: `bunx pnpm@11.9.0 install`.
+
+**Desarrollo presencia + plugins en PTB:**
+
+```bash
+bunx pnpm@11.9.0 dev:ptb    # watch + auto sync:ptb
+bunx pnpm@11.9.0 start:ptb  # abre PTB (QUIET_DEV=1)
+```
+
+Tras cambios en `patcher.js`, reinicia PTB; con solo `renderer` basta **Ctrl+R**.
+
+**API cloud:** ver `services/quiet-backend/README.md`.
+
 **Discord PTB (recomendado para Quiet):** solo `%LOCALAPPDATA%\\DiscordPTB` y `DiscordPTB.exe`. No uses scripts que maten `Discord.exe` ni parches en `%LOCALAPPDATA%\\Discord`.
 
 ```bash
@@ -74,6 +89,8 @@ Flujo recomendado:
 Vuelve a `inject:ptb` solo si cambias preload/main (`patcher.js` en el stub) o reinstalas PTB. Para plugins y UI, `sync:ptb` + Ctrl+R alcanza.
 
 Si ves pantalla de **login** de verdad (no solo cierre del app), suele ser otra causa (cuenta, caché corrupto, otro cliente); prueba no usar `taskkill /F` en bucle y evita `restore:ptb` salvo emergencia.
+
+**Dev overlay inteligente:** con el repo en `QUIET_DEV_REPO_PATH` (`brand.ts`, p. ej. `C:/Projects/Quiet`) o `QUIET_REPO_PATH`, Quiet lee la rama git vía main process y puede activar solo la tarjeta dev en tu perfil. Forzar con `QUIET_DEV=1` al lanzar PTB (variable de entorno del proceso Discord).
 
 ## Quiet Presence (Rich Presence público)
 

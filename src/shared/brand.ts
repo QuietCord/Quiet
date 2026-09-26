@@ -10,8 +10,15 @@ export const CLIENT_NAME = "Quiet";
 export const UPSTREAM_NAME = "Vencord";
 export const UPSTREAM_REPO = "Vendicated/Vencord";
 
-/** This fork's GitHub `owner/repo` */
-export const FORK_REPO = "hyusband/Quiet";
+/** This fork's GitHub `owner/repo` (client) */
+export const FORK_REPO = "QuietCord/Quiet";
+
+/** QuietCord GitHub org */
+export const GITHUB_ORG = "QuietCord";
+export const GITHUB_ORG_URL = "https://github.com/QuietCord";
+
+/** Backend repo for cloud sync (AGPL fork of Vencord/Backend) */
+export const BACKEND_REPO = "QuietCord/Backend";
 
 /** Cloud sync API base URL (must implement Vencord Backend-compatible routes). */
 export const CLOUD_API_URL = "https://api.example.com/";
@@ -33,11 +40,14 @@ export const QUIET_RPC_DEFAULT_IMAGE_KEY = "quiet";
  */
 export const QUIET_RPC_APP_ID = "1553407390182019282";
 
+/** Default clone path for smart dev overlay (override with env QUIET_REPO_PATH). */
+export const QUIET_DEV_REPO_PATH = "C:/Projects/Quiet";
+
 /** Public site for Quiet (optional). Logo artwork originates from Catbox. */
 export const WEBSITE_URL = "";
 export const PLUGIN_DOCS_BASE = "";
 export const CLOUD_PRIVACY_URL = "";
-export const CLOUD_BACKEND_SOURCE_URL = "https://github.com/Vencord/Backend";
+export const CLOUD_BACKEND_SOURCE_URL = `https://github.com/${BACKEND_REPO}`;
 
 export function getCloudApiOrigin(): string {
     return new URL(CLOUD_API_URL).origin;

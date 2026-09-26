@@ -18,6 +18,7 @@ import { Button, Forms, showToast, Toasts, UserStore } from "@webpack/common";
 
 import { createQuietActivity, setQuietPresence } from "./rpc";
 import { getCurrentRotationLine } from "./rotation";
+import { initSmartDevOverlay } from "./smartDev";
 import { startPresenceRotation, stopPresenceRotation } from "./rotationTimer";
 import { settings } from "./settings";
 import { useEffect, useState } from "@webpack/common";
@@ -51,8 +52,10 @@ export default definePlugin({
         if (isPluginEnabled("CustomRPC")) {
             showToast("Disable CustomRPC if Quiet Presence does not show correctly.", Toasts.Type.MESSAGE);
         }
-        void setQuietPresence();
-        startPresenceRotation();
+        void initSmartDevOverlay().then(() => {
+            void setQuietPresence();
+            startPresenceRotation();
+        });
     },
 
     stop: () => {

@@ -25,6 +25,10 @@ import { IS_VANILLA } from "./utils/constants";
 
 console.log("[Vencord] Starting up...");
 
+if (!IS_VANILLA) {
+    process.env.QUIET_DEV ??= "1";
+}
+
 // Our injector file at app/index.js
 const injectorPath = require.main!.filename;
 

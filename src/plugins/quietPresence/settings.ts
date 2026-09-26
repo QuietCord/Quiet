@@ -32,6 +32,11 @@ export const settings = definePluginSettings({
         default: false,
         description: "Extra dev activity on your profile — only on your screen, not sent to friends",
     },
+    devOverlayAuto: {
+        type: OptionType.BOOLEAN,
+        default: true,
+        description: "Auto-enable dev overlay when QUIET_DEV=1 or the Quiet repo is found (QUIET_REPO_PATH / brand path)",
+    },
     config: {
         type: OptionType.COMPONENT,
         component: QuietPresenceSettings,

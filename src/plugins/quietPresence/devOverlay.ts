@@ -15,6 +15,30 @@ export interface DevOverlayLine {
     state: string;
 }
 
+export type { DevGitContext } from "./native";
+
+let gitContext: import("./native").DevGitContext | null = null;
+
+export function setDevGitContext(ctx: import("./native").DevGitContext | null) {
+    gitContext = ctx;
+}
+
+function getEffectiveLines(): DevOverlayLine[] {
+    const lines = [...DEV_OVERLAY_LINES];
+    if (gitContext?.branch) {
+        lines.unshift({
+            details: `Working on ${gitContext.branch}`,
+            state: gitContext.repoPath ? "Quiet · local repo" : "Quiet · dev mode",
+        });
+    } else if (gitContext?.active) {
+        lines.unshift({
+            details: "Quiet dev session",
+            state: "QUIET_DEV active",
+        });
+    }
+    return lines;
+}
+
 /** Solo visible en tu cliente (perfil propio). No se envía a amigos. */
 export const DEV_OVERLAY_LINES: DevOverlayLine[] = [
     { details: "Working on new features", state: "Quiet dev session" },
@@ -29,11 +53,13 @@ let devSessionStart = Date.now();
 let origGetActivities: typeof PresenceStore.getActivities | null = null;
 
 export function getDevOverlayLine() {
-    return DEV_OVERLAY_LINES[devIndex % DEV_OVERLAY_LINES.length];
+    const lines = getEffectiveLines();
+    return lines[devIndex % lines.length];
 }
 
 export function tickDevOverlay() {
-    devIndex = (devIndex + 1) % DEV_OVERLAY_LINES.length;
+    const lines = getEffectiveLines();
+    devIndex = (devIndex + 1) % lines.length;
     FluxDispatcher.dispatch({ type: "PRESENCE_UPDATES" });
 }
 
