@@ -6,6 +6,7 @@
 
 import { Settings } from "@api/Settings";
 import { traceFunctionWithResults } from "@debug/Tracer";
+import { markPatchApplied, markPatchError, markPatchNoEffect } from "@shared/quietPatchHealth";
 import { makeLazy } from "@utils/lazy";
 import { Logger } from "@utils/Logger";
 import { interpolateIfDefined } from "@utils/misc";
@@ -569,6 +570,9 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                 }
 
                 if (newPatchedCode === patchedCode) {
+                    if (patch.patchId) {
+                        markPatchNoEffect(patch.patchId, moduleId, replacement.match);
+                    }
                     if (!(patch.noWarn || replacement.noWarn)) {
                         logger.warn(`Patch by ${patch.plugin} had no effect (Module id is ${String(moduleId)}): ${replacement.match}`);
                         if (IS_DEV) {
@@ -601,10 +605,16 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                 patchedCode = newPatchedCode;
                 patchedSource = newPatchedSource;
                 patchedFactory = newPatchedFactory;
+                if (patch.patchId) {
+                    markPatchApplied(patch.patchId, moduleId);
+                }
             } catch (err) {
                 // FIXME: Maybe fix this properly
                 const shouldSuppressError = patch.plugin === "ContextMenuAPI" && err instanceof SyntaxError && err.message.includes("arguments");
                 if (!shouldSuppressError) {
+                    if (patch.patchId) {
+                        markPatchError(patch.patchId, moduleId, replacement.match, err);
+                    }
                     logger.error(`Patch by ${patch.plugin} errored (Module id is ${String(moduleId)}): ${replacement.match}\n`, err);
 
                     if (IS_DEV) {

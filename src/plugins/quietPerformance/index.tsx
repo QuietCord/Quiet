@@ -9,8 +9,10 @@ import { Logger } from "@utils/Logger";
 import definePlugin, { type PluginNative } from "@utils/types";
 import { createRoot, showToast, Toasts } from "@webpack/common";
 
-import { startDomOptimizer, stopDomOptimizer } from "./domOptimizer";
-import { startMessageCacheJanitor, trimInactiveMessageCaches } from "./messageCacheTrim";
+import { trimInactiveMessageCaches } from "./messageCacheTrim";
+import { formatMetricsLine, readMetricsSnapshot } from "./metricsClient";
+import { logPatchHealth } from "./patchHealthReport";
+import { startProfiler, stopProfiler } from "./profiler/collector";
 import {
     applyPerformanceClasses,
     settings,
@@ -25,11 +27,10 @@ export { settings } from "./settings";
 
 let overlayRoot: ReturnType<typeof createRoot> | null = null;
 let overlayHost: HTMLDivElement | null = null;
-let cacheJanitorId: ReturnType<typeof setInterval> | null = null;
 
 export default definePlugin({
     name: "QuietPerformance",
-    description: "Quiet's performance mode: profiles, optional text-only chat, fewer Chromium processes, and a live RAM/CPU pill.",
+    description: "Quiet performance mode: profiles, MessageStore caps, CDN policies, Chromium tuning, metrics sampler, and optional profiler.",
     tags: ["Utility"],
     authors: [{ name: "hyusband", id: 0n }],
     enabledByDefault: true,
@@ -39,9 +40,8 @@ export default definePlugin({
 
     settingsAboutComponent: () => (
         <span>
-            Quiet runs <strong>inside</strong> Discord: we patch webpack (React), trim <code>MessageStore</code> caches,
-            and in the main process we tune Chromium and optionally block CDN media before it is decoded into RAM.
-            Vanilla Discord cannot do that without injection.
+            React/webpack patches run before DOM (media, GIF autoplay, motion). MessageStore limits use <code>truncateTop</code>.
+            CDN policy runs in the main process only for Text Only / Efficient heavy URLs. One shared metrics sampler feeds the pill and profiler.
         </span>
     ),
 
@@ -53,9 +53,9 @@ export default definePlugin({
 
     patches: [
         {
+            patchId: "perf-freeze-canAnimate",
             find: "canAnimate:",
             all: true,
-            noWarn: true,
             predicate: () => settings.store.freezeMotion,
             replacement: {
                 match: /canAnimate:.+?([,}].*?\))/g,
@@ -66,6 +66,7 @@ export default definePlugin({
             },
         },
         {
+            patchId: "perf-freeze-emoji",
             find: "#{intl::GUILD_OWNER}),children:",
             predicate: () => settings.store.freezeMotion,
             replacement: {
@@ -74,45 +75,36 @@ export default definePlugin({
             },
         },
         {
+            patchId: "perf-freeze-banner",
             find: "#{intl::DISCOVERABLE_GUILD_HEADER_PUBLIC_INFO}",
             predicate: () => settings.store.freezeMotion,
-            noWarn: true,
             replacement: {
                 match: /(guildBanner:\i,animate:)\i(?=}\):null)/,
                 replace: "$1!1",
             },
         },
         {
+            patchId: "perf-freeze-gradient",
             find: "=!1,contentOnly:",
             predicate: () => settings.store.freezeMotion,
-            noWarn: true,
             replacement: {
                 match: /animate:\i/,
                 replace: "animate:!1",
             },
         },
         {
-            find: '="left",className:',
-            predicate: () => settings.store.freezeMotion,
-            noWarn: true,
-            replacement: {
-                match: /,animateGradient:/,
-                replace: ",animateGradient:!1,_oldAnimateGradient:",
-            },
-        },
-        {
+            patchId: "perf-freeze-nameplate",
             find: ".MINI_PREVIEW,[",
             predicate: () => settings.store.freezeMotion,
-            noWarn: true,
             replacement: {
                 match: /animate:\i,loop:/,
                 replace: "animate:!1,loop:!1,_loop:",
             },
         },
         {
+            patchId: "perf-autoPlayGif",
             find: "autoPlayGif",
             all: true,
-            noWarn: true,
             predicate: () => settings.store.pauseGifAutoplay,
             replacement: {
                 match: /autoPlayGif:(\i)/g,
@@ -120,6 +112,7 @@ export default definePlugin({
             },
         },
         {
+            patchId: "perf-stripMedia",
             find: "this.renderAttachments(",
             predicate: () =>
                 settings.store.stripAttachments
@@ -132,9 +125,9 @@ export default definePlugin({
             },
         },
         {
+            patchId: "perf-truncateTop",
             find: "this.truncateTop",
             all: true,
-            noWarn: true,
             predicate: () => settings.store.trimMessageCache,
             replacement: {
                 match: /this\.truncateTop\((\i)\)/g,
@@ -157,48 +150,43 @@ export default definePlugin({
 
     toolboxActions: {
         "Quiet usage": async () => {
-            const Native = VencordNative.pluginHelpers.QuietPerformance as PluginNative<typeof import("./native")>;
-            const usage = await Native.getUsage();
-            const heaviest = [...usage.processes].sort((a, b) => b.ramMb - a.ramMb)[0];
-            logger.info("usage", usage);
-            showToast(
-                `${usage.ramMb} MB · ${usage.cpu}% CPU · ${usage.processes.length} processes` +
-                (heaviest ? ` · top ${heaviest.type} ${heaviest.ramMb} MB` : ""),
-                Toasts.Type.MESSAGE,
-            );
+            const snap = await readMetricsSnapshot(true);
+            logger.info("usage", snap);
+            showToast(formatMetricsLine(snap), Toasts.Type.MESSAGE);
         },
         "Clear Quiet cache": async () => {
             const Native = VencordNative.pluginHelpers.QuietPerformance as PluginNative<typeof import("./native")>;
             await Native.clearRendererCache();
             showToast("Renderer HTTP cache cleared", Toasts.Type.SUCCESS);
         },
+        "Patch health": () => {
+            const report = logPatchHealth();
+            showToast(
+                `${report.rows.filter(r => r.status === "applied").length}/${report.rows.length} patches OK (Discord ${report.discordBuild})`,
+                report.broken.length ? Toasts.Type.MESSAGE : Toasts.Type.SUCCESS,
+            );
+        },
     },
 
     start() {
         applyPerformanceClasses();
-        startDomOptimizer();
         mountUsageOverlay();
-        cacheJanitorId = startMessageCacheJanitor();
+        syncProfiler();
 
         if (isPluginEnabled("AlwaysAnimate"))
             logger.warn("AlwaysAnimate is on — disable it for full motion savings.");
 
-        setTimeout(async () => {
-            try {
-                const Native = VencordNative.pluginHelpers.QuietPerformance as PluginNative<typeof import("./native")>;
-                const usage = await Native.getUsage();
-                logger.info(`working set ${usage.ramMb} MB, cpu ${usage.cpu}% across ${usage.processes.length} processes`);
-            } catch (err) {
-                logger.error(err);
-            }
-        }, 20_000);
+        setTimeout(() => logPatchHealth(), 3000);
+    },
+
+    syncProfilerOverlay() {
+        syncProfiler();
+        mountUsageOverlay();
     },
 
     stop() {
-        stopDomOptimizer();
+        stopProfiler();
         unmountUsageOverlay();
-        if (cacheJanitorId != null) clearInterval(cacheJanitorId);
-        cacheJanitorId = null;
         document.documentElement.className = document.documentElement.className
             .split(/\s+/)
             .filter(c => !c.startsWith("vc-quiet-perf-"))
@@ -206,9 +194,14 @@ export default definePlugin({
     },
 });
 
+function syncProfiler() {
+    if (settings.store.enableProfiler) startProfiler();
+    else stopProfiler();
+}
+
 function mountUsageOverlay() {
     unmountUsageOverlay();
-    if (!settings.store.showUsagePill) return;
+    if (!settings.store.showUsagePill && !settings.store.enableProfiler) return;
 
     overlayHost = document.createElement("div");
     overlayHost.id = "vc-quiet-perf-overlay-host";

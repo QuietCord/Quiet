@@ -115,7 +115,7 @@ export const settings = definePluginSettings({
     },
     lazyMessagePaint: {
         type: OptionType.BOOLEAN,
-        description: "content-visibility on messages + lazy/async image decode off-screen.",
+        description: "content-visibility on messages (paint skipping off-screen).",
         default: true,
         onChange: onContentToggle,
     },
@@ -127,7 +127,7 @@ export const settings = definePluginSettings({
     },
     trimMessageCache: {
         type: OptionType.BOOLEAN,
-        description: "Cap Discord's in-memory MessageStore for channels you are not reading (runs every 45s and on channel change). This is inside Discord's own cache — only possible because Quiet is injected.",
+        description: "Lower MessageStore caps via truncateTop patch. Inactive channels get a one-shot fallback trim on channel switch only.",
         default: true,
         onChange: markCustomProfile,
     },
@@ -138,12 +138,43 @@ export const settings = definePluginSettings({
         default: 60,
         onChange: markCustomProfile,
     },
-    blockHeavyCdn: {
-        type: OptionType.BOOLEAN,
-        description: "Main process: block Discord CDN image/video downloads before they hit RAM (Electron webRequest). Icons may be blank until you open a channel. Restart required.",
-        default: false,
+    cdnPolicy: {
+        type: OptionType.SELECT,
+        description: "Normal: no CDN blocks. Efficient: block attachments, GIFs, heavy decorations (keeps avatars/icons/emojis). Text Only: block all CDN images/media. Restart required.",
+        default: "efficient",
         restartNeeded: true,
+        options: [
+            { label: "Normal", value: "normal" },
+            { label: "Efficient (recommended)", value: "efficient", default: true },
+            { label: "Text only", value: "textOnly" },
+        ],
         onChange: markCustomProfile,
+    },
+    rasterThreads: {
+        type: OptionType.SELECT,
+        description: "Chromium raster threads (lite Chromium). Auto leaves Discord defaults. Restart required.",
+        default: "auto",
+        restartNeeded: true,
+        options: [
+            { label: "Auto", value: "auto", default: true },
+            { label: "1", value: "1" },
+            { label: "2", value: "2" },
+            { label: "4", value: "4" },
+        ],
+        onChange: markCustomProfile,
+    },
+    enableProfiler: {
+        type: OptionType.BOOLEAN,
+        description: "Show the Quiet Profiler panel (FPS, long tasks, Flux rate, heap). Off = zero overhead.",
+        default: false,
+        onChange() {
+            (Vencord.Plugins.plugins.QuietPerformance as { syncProfilerOverlay?: () => void; })?.syncProfilerOverlay?.();
+        },
+    },
+    patchDiagnostics: {
+        type: OptionType.BOOLEAN,
+        description: "Log QuietPerformance patch health when Discord updates break webpack finds.",
+        default: true,
     },
     liteChromium: {
         type: OptionType.BOOLEAN,
@@ -181,12 +212,6 @@ export const settings = definePluginSettings({
             markCustomProfile();
             setRootClass(CLASS.blur, value);
         },
-    },
-    throttleUnfocused: {
-        type: OptionType.BOOLEAN,
-        description: "Throttle renderer when the window is in the background. Restart required.",
-        default: true,
-        restartNeeded: true,
     },
     disableSpellcheck: {
         type: OptionType.BOOLEAN,

@@ -6,20 +6,24 @@
 
 import { app, BrowserWindowConstructorOptions, session } from "electron";
 
+import { startMetricsSampler } from "./metricsSampler";
 import { RendererSettings } from "./settings";
+
+export type CdnPolicy = "normal" | "efficient" | "textOnly";
+export type RasterThreads = "auto" | "1" | "2" | "4";
 
 export interface QuietPerformanceConfig {
     enabled: boolean;
     liteChromium: boolean;
     freezeMotion: boolean;
     disableBlur: boolean;
-    throttleUnfocused: boolean;
     disableSpellcheck: boolean;
     aggressiveMemory: boolean;
     disableGpu: boolean;
-    blockHeavyCdn: boolean;
+    cdnPolicy: CdnPolicy;
     trimMessageCache: boolean;
     messageCacheCap: number;
+    rasterThreads: RasterThreads;
 }
 
 const DISABLED: QuietPerformanceConfig = {
@@ -27,13 +31,13 @@ const DISABLED: QuietPerformanceConfig = {
     liteChromium: false,
     freezeMotion: false,
     disableBlur: false,
-    throttleUnfocused: false,
     disableSpellcheck: false,
     aggressiveMemory: false,
     disableGpu: false,
-    blockHeavyCdn: false,
+    cdnPolicy: "normal",
     trimMessageCache: false,
     messageCacheCap: 150,
+    rasterThreads: "auto",
 };
 
 let cached: QuietPerformanceConfig | null = null;
@@ -43,7 +47,19 @@ function readPluginSettings() {
     return plugins?.QuietPerformance;
 }
 
-/** Missing keys mean "on" so the first launch matches the plugin defaults. */
+function resolveCdnPolicy(plugin: Record<string, unknown> | undefined): CdnPolicy {
+    const policy = plugin?.cdnPolicy;
+    if (policy === "normal" || policy === "efficient" || policy === "textOnly") return policy;
+    if (plugin?.blockHeavyCdn === true) return "textOnly";
+    return "normal";
+}
+
+function resolveRasterThreads(plugin: Record<string, unknown> | undefined): RasterThreads {
+    const v = plugin?.rasterThreads;
+    if (v === "auto" || v === "1" || v === "2" || v === "4") return v;
+    return "auto";
+}
+
 export function getQuietPerformance(): QuietPerformanceConfig {
     if (cached) return cached;
 
@@ -58,13 +74,13 @@ export function getQuietPerformance(): QuietPerformanceConfig {
         liteChromium: plugin?.liteChromium !== false,
         freezeMotion: plugin?.freezeMotion !== false,
         disableBlur: plugin?.disableBlur !== false,
-        throttleUnfocused: plugin?.throttleUnfocused !== false,
         disableSpellcheck: plugin?.disableSpellcheck !== false,
         aggressiveMemory: plugin?.aggressiveMemory === true,
         disableGpu: plugin?.disableGpu === true,
-        blockHeavyCdn: plugin?.blockHeavyCdn === true,
+        cdnPolicy: resolveCdnPolicy(plugin),
         trimMessageCache: plugin?.trimMessageCache !== false,
         messageCacheCap: typeof plugin?.messageCacheCap === "number" ? plugin.messageCacheCap : 60,
+        rasterThreads: resolveRasterThreads(plugin),
     };
     return cached;
 }
@@ -76,27 +92,35 @@ const CDN_URLS = [
     "*://*.discordapp.net/*",
 ];
 
+function shouldBlockCdnRequest(url: string, resourceType: string, policy: CdnPolicy): boolean {
+    if (policy === "normal") return false;
+    if (policy === "textOnly") {
+        return resourceType === "image" || resourceType === "media";
+    }
+    if (resourceType === "media") return true;
+    if (resourceType !== "image") return false;
+
+    const u = url.toLowerCase();
+    if (u.includes("/attachments/")) return true;
+    if (u.includes(".gif") || u.includes("format=gif")) return true;
+    if (u.includes("avatar-decoration") || u.includes("/decor/")) return true;
+    if (u.includes("/banners/") && u.includes("a_")) return true;
+    if (u.includes("/profile-effects/")) return true;
+
+    return false;
+}
+
 function installCdnGuard() {
-    const ses = session.defaultSession;
-    ses.webRequest.onBeforeRequest({ urls: CDN_URLS }, (details, callback) => {
-        if (!getQuietPerformance().blockHeavyCdn) {
-            callback({});
-            return;
-        }
-        const { resourceType } = details;
-        if (resourceType === "image" || resourceType === "media") {
+    session.defaultSession.webRequest.onBeforeRequest({ urls: CDN_URLS }, (details, callback) => {
+        const policy = getQuietPerformance().cdnPolicy;
+        if (shouldBlockCdnRequest(details.url, details.resourceType, policy)) {
             callback({ cancel: true });
             return;
         }
         callback({});
     });
-    console.log("[Quiet] performance: CDN media guard armed (toggle blockHeavyCdn)");
 }
 
-/**
- * Chromium reads these before ready. Discord may call appendSwitch("disable-features")
- * later and replace the value, so later calls are merged with ours.
- */
 function armChromiumFeatures(disable: string[], enable: string[]) {
     const disableSet = new Set(disable);
     const enableSet = new Set(enable);
@@ -119,7 +143,6 @@ function armChromiumFeatures(disable: string[], enable: string[]) {
     if (enableSet.size) original("enable-features", [...enableSet].join(","));
 }
 
-/** Call before Discord's app.asar main runs. */
 export function applyQuietRuntime() {
     const perf = getQuietPerformance();
     if (!perf.enabled) {
@@ -130,7 +153,6 @@ export function applyQuietRuntime() {
     if (perf.disableGpu) {
         try {
             app.disableHardwareAcceleration();
-            console.log("[Quiet] performance: hardware acceleration disabled");
         } catch (err) {
             console.error("[Quiet] performance: disableHardwareAcceleration failed", err);
         }
@@ -142,16 +164,16 @@ export function applyQuietRuntime() {
             "BackForwardCache",
             "MediaRouter",
             "DialMediaRouteProvider",
-            "HardwareMediaKeyHandling",
         ];
         const enable = process.platform === "win32" ? ["UseEcoQoSForBackgroundProcess"] : [];
 
         try {
             armChromiumFeatures(disable, enable);
-            app.commandLine.appendSwitch("num-raster-threads", "2");
-            console.log("[Quiet] performance: lite chromium flags armed");
+            if (perf.rasterThreads !== "auto") {
+                app.commandLine.appendSwitch("num-raster-threads", perf.rasterThreads);
+            }
         } catch (err) {
-            console.error("[Quiet] performance: failed to set chromium flags", err);
+            console.error("[Quiet] performance: chromium flags", err);
         }
     }
 
@@ -170,21 +192,21 @@ export function applyQuietRuntime() {
             console.error("[Quiet] performance: CDN guard", err);
         }
 
-        if (!getQuietPerformance().disableSpellcheck) return;
-        try {
-            session.defaultSession.setSpellCheckerEnabled(false);
-        } catch (err) {
-            console.error("[Quiet] performance: spellchecker", err);
+        if (getQuietPerformance().disableSpellcheck) {
+            try {
+                session.defaultSession.setSpellCheckerEnabled(false);
+            } catch (err) {
+                console.error("[Quiet] performance: spellchecker", err);
+            }
         }
+
+        startMetricsSampler();
     });
 }
 
 export function applyQuietWindowOptions(options: BrowserWindowConstructorOptions) {
     const perf = getQuietPerformance();
     if (!perf.enabled || !options.webPreferences) return;
-
-    if (perf.throttleUnfocused)
-        options.webPreferences.backgroundThrottling = true;
 
     if (perf.disableSpellcheck)
         options.webPreferences.spellcheck = false;

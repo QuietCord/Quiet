@@ -91,6 +91,34 @@ html.vc-quiet-perf-no-effects * {
     box-shadow: none !important;
 }
 
+.vc-quiet-profiler-panel {
+    position: fixed;
+    top: 64px;
+    left: 72px;
+    z-index: 9999;
+    min-width: 200px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: var(--font-code);
+    color: var(--text-normal);
+    background: color-mix(in srgb, var(--background-floating) 94%, transparent);
+    border: 1px solid var(--background-modifier-accent);
+    pointer-events: none;
+}
+
+.vc-quiet-profiler-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.vc-quiet-profiler-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    line-height: 1.4;
+}
+
 .vc-quiet-perf-usage-pill {
     position: fixed;
     top: 36px;

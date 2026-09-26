@@ -108,6 +108,8 @@ export interface Patch {
     fromBuild?: number;
     /** The maximum build number for this patch to be applied */
     toBuild?: number;
+    /** Optional id for patch health diagnostics (QuietPerformance) */
+    patchId?: string;
 }
 
 export interface PluginAuthor {
