@@ -25,6 +25,7 @@
         "dev:ptb": "node scripts/devPtb.mjs",
         "watchWeb": "pnpm buildWeb --watch",
         "generatePluginJson": "tsx scripts/generatePluginList.ts",
+        "perf:manifest": "node scripts/generatePluginLoadManifest.mjs",
         "generateTypes": "tspc --emitDeclarationOnly --declaration --outDir packages/vencord-types --allowJs false",
         "inject": "node scripts/runInstaller.mjs -- --install",
         "inject:ptb": "node scripts/installEmbeddedPtb.mjs",

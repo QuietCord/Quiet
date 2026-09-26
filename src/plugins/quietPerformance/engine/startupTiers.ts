@@ -12,7 +12,7 @@ export interface StartupModuleEntry {
     note: string;
 }
 
-/** Classification only — Stage 5 will act on this list. */
+/** Stage 5 — classification + deferred/lazy wiring (see engine/stage5/). */
 export const QUIET_PERFORMANCE_STARTUP_MODULES: StartupModuleEntry[] = [
     { id: "settings.core", tier: "critical", note: "Plugin settings + performance class toggles" },
     { id: "patchRegistration", tier: "critical", note: "Webpack patches for media/message caps" },

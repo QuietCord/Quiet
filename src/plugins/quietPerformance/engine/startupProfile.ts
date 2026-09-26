@@ -10,12 +10,15 @@ const marks = {
     uiReady: 0,
 };
 
+let webpackModulesExecuted = 0;
+
 let pluginStarted = false;
 
 export function markQuietPerfPluginStart() {
     marks.pluginStart = performance.now();
     marks.connectionOpen = 0;
     marks.uiReady = 0;
+    webpackModulesExecuted = 0;
     pluginStarted = true;
 }
 
@@ -27,6 +30,16 @@ export function markQuietPerfConnectionOpen() {
 export function markQuietPerfUiReady() {
     if (!pluginStarted) return;
     if (!marks.uiReady) marks.uiReady = performance.now();
+}
+
+export function markQuietPerfWebpackModuleExecuted() {
+    webpackModulesExecuted++;
+}
+
+export function classifyWebpackLoadPhase(now = performance.now()): "pre-connection" | "pre-ui" | "runtime" {
+    if (marks.uiReady && now <= marks.uiReady) return "pre-ui";
+    if (marks.connectionOpen && now <= marks.connectionOpen) return "pre-connection";
+    return "runtime";
 }
 
 export function getStartupProfile() {
@@ -44,5 +57,6 @@ export function getStartupProfile() {
             ? msToConnectionOpen
             : null,
         msPluginStartToUiReady: msToUiReady != null && msToUiReady >= 0 ? msToUiReady : null,
+        webpackModulesExecuted,
     };
 }

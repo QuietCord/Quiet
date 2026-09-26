@@ -9,6 +9,7 @@ import { OptionType } from "@utils/types";
 
 import { presetNeedsConfirmation } from "./presetRisk";
 import { PerformanceAutoPanel } from "./PerformanceAutoPanel";
+import { PerformanceDeepPanel } from "./PerformanceDeepPanel";
 import { PerformanceHistoryPanel } from "./PerformanceHistoryPanel";
 import { PerformanceSettingsExtras } from "./PerformanceSettingsExtras";
 
@@ -360,6 +361,16 @@ export const settings = definePluginSettings({
         description: "Experimental — Count renders for hot Discord components (Message, Avatar, ChannelRow, MemberListItem). Profiler-style overhead when enabled.",
         default: false,
         onChange: onAdaptiveEngineChange,
+    },
+    deepProfiler: {
+        type: OptionType.BOOLEAN,
+        description: "Stage 5 — Deep attribution: webpack module/search timing, Flux fanout hints, LoAF correlation. Noticeable overhead; disable for daily use.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
+    },
+    stage5Panel: {
+        type: OptionType.COMPONENT,
+        component: PerformanceDeepPanel,
     },
     stage3Panel: {
         type: OptionType.COMPONENT,

@@ -18,6 +18,7 @@ import { getResourceBudgetSnapshot } from "./resourceBudget";
 import { setBenchmarkMode, setPerformanceSafeMode } from "./stage4/featureControl";
 import { startPerformanceController, stopPerformanceController, syncPerformanceController } from "./stage4/performanceController";
 import { getInstrumentationDiagnostics, registerDiagnostic } from "./stage5/instrumentationBus";
+import { scheduleIdleMaintenance, syncDeepProfiler, stopDeepProfiler } from "./stage5";
 import { settings } from "../settings";
 
 function deferReactHotPath() {
@@ -62,6 +63,7 @@ export function startAdaptiveEngine() {
     startPerformanceController();
     startAdaptiveBackground();
     reloadAdaptiveSubsystems();
+    syncDeepProfiler();
 }
 
 export function stopAdaptiveEngine() {
@@ -72,12 +74,14 @@ export function stopAdaptiveEngine() {
     stopFluxBatching();
     stopMediaVisibilityEngine();
     stopLifecycleDebug();
+    stopDeepProfiler();
 }
 
 export function syncAdaptiveEngine() {
     syncStage4RuntimeFlags();
     syncPerformanceController();
     reloadAdaptiveSubsystems();
+    syncDeepProfiler();
 }
 
 /** Apply flux/memory/media patches when auto-tuning flips features (does not restart the controller). */

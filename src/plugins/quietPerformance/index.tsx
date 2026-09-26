@@ -86,6 +86,7 @@ export default definePlugin({
             patchId: "perf-freeze-canAnimate",
             find: "canAnimate:",
             all: true,
+            noWarn: true,
             predicate: () => settings.store.freezeMotion,
             replacement: {
                 match: /canAnimate:.+?([,}].*?\))/g,
@@ -135,6 +136,7 @@ export default definePlugin({
             patchId: "perf-autoPlayGif",
             find: "autoPlayGif",
             all: true,
+            noWarn: true,
             predicate: () => settings.store.pauseGifAutoplay,
             replacement: {
                 // Avoid `autoPlayGif:\i` — it matches destructuring aliases and breaks modules.
@@ -193,7 +195,7 @@ export default definePlugin({
         "Patch health": () => {
             const report = logPatchHealth();
             showToast(
-                `${report.rows.filter(r => r.status === "applied").length}/${report.rows.length} patches OK (Discord ${report.discordBuild})`,
+                report.toast,
                 report.broken.length ? Toasts.Type.MESSAGE : Toasts.Type.SUCCESS,
             );
         },
@@ -231,6 +233,11 @@ export default definePlugin({
             const snap = await getProfilerSnapshot();
             await copyComparisonToClipboard(snap, settings.store.channelLayoutCoalesce ? "channelLayoutCoalesce" : "custom");
             showToast("Comparison JSON copied (needs baseline first)", Toasts.Type.MESSAGE);
+        },
+        "Export self-profile JSON": async () => {
+            const { captureQuietSelfProfile } = await import("./engine/stage5/selfProfile");
+            await navigator.clipboard.writeText(JSON.stringify(captureQuietSelfProfile(), null, 2));
+            showToast("Stage 5 self-profile copied (enable Deep profiler for webpack samples)", Toasts.Type.SUCCESS);
         },
         "Clear profiler baseline": () => {
             clearProfilerBaseline();

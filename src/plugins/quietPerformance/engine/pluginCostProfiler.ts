@@ -8,6 +8,8 @@ import { isPluginEnabled } from "@api/PluginManager";
 
 export type PluginCostTier = "low" | "medium" | "high" | "unknown";
 
+export type PluginCostConfidence = "measured" | "estimated" | "unknown";
+
 export interface PluginCostRow {
     name: string;
     enabled: boolean;
@@ -15,6 +17,7 @@ export interface PluginCostRow {
     fluxSubscriptions: number;
     startStage: "eager";
     tier: PluginCostTier;
+    confidence: PluginCostConfidence;
     notes: string[];
 }
 
@@ -49,11 +52,12 @@ export function collectPluginCostReport(): PluginCostReport {
             patchCount,
             fluxSubscriptions,
             startStage: "eager" as const,
+            confidence: (patchCount || fluxSubscriptions ? "estimated" : "unknown") as PluginCostConfidence,
             notes: [] as string[],
         };
         const tier = tierFor(base);
-        if (tier === "high" && base.enabled) {
-            base.notes.push("High patch/Flux surface — may contribute to renderer activity.");
+    if (tier === "high" && base.enabled) {
+            base.notes.push("High patch/Flux surface — estimated renderer impact from static metadata only.");
         }
         rows.push({ ...base, tier });
     }
@@ -61,7 +65,7 @@ export function collectPluginCostReport(): PluginCostReport {
     rows.sort((a, b) => (b.patchCount + b.fluxSubscriptions) - (a.patchCount + a.fluxSubscriptions));
 
     for (const r of rows.filter(r => r.enabled && r.tier === "high").slice(0, 3)) {
-        warnings.push(`Plugin "${r.name}" appears to contribute to high renderer activity (${r.patchCount} patches, ${r.fluxSubscriptions} Flux handlers).`);
+        warnings.push(`Plugin "${r.name}" appears to contribute to high renderer activity (${r.patchCount} patches, ${r.fluxSubscriptions} Flux handlers) — estimated, not measured per-plugin RAM.`);
     }
 
     return { capturedAt: new Date().toISOString(), rows, warnings };

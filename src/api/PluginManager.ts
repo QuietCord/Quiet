@@ -36,6 +36,8 @@ import { FluxEvents } from "@vencord/discord-types";
 import { FluxDispatcher } from "@webpack/common";
 import { patches } from "@webpack/patcher";
 
+import { markPatchSkipped } from "@shared/quietPatchHealth";
+
 import Plugins from "~plugins";
 export { Plugins as plugins };
 const logger = new Logger("PluginManager", "#a6d189");
@@ -86,7 +88,10 @@ export function addPatch(newPatch: Omit<Patch, "plugin">, pluginName: string, pl
         delete patch.group;
     }
 
-    if (patch.predicate && !patch.predicate()) return;
+    if (patch.predicate && !patch.predicate()) {
+        if (patch.patchId) markPatchSkipped(patch.patchId, "setting off at startup (restart Discord after changing)");
+        return;
+    }
 
     canonicalizeFind(patch);
     if (!Array.isArray(patch.replacement)) {

@@ -14,7 +14,7 @@ import { Patch, PatchReplacement } from "@utils/types";
 import { WebpackRequire } from "@vencord/discord-types/webpack";
 
 import { AnyModuleFactory, AnyWebpackRequire, MaybePatchedModuleFactory, PatchedModuleFactory } from "./types";
-import { _blacklistBadModules, _initWebpack, factoryListeners, findModuleFactory, moduleListeners, waitForSubscriptions, wreq } from "./webpack";
+import { _blacklistBadModules, _initWebpack, factoryListeners, findModuleFactory, moduleListeners, moduleFactoryTimingListeners, waitForSubscriptions, wreq } from "./webpack";
 
 export const patches = [] as Patch[];
 
@@ -415,6 +415,7 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, thisArg: unkno
     }
 
     let factoryReturn: unknown;
+    const factoryStart = moduleFactoryTimingListeners.size ? performance.now() : 0;
     try {
         factoryReturn = patchedFactory.apply(thisArg, argArray);
     } catch (err) {
@@ -425,6 +426,17 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, thisArg: unkno
 
         logger.error("Error in patched module factory:\n", err);
         return originalFactory.apply(thisArg, argArray);
+    }
+
+    if (factoryStart && moduleFactoryTimingListeners.size) {
+        const durationMs = performance.now() - factoryStart;
+        for (const listener of moduleFactoryTimingListeners) {
+            try {
+                listener(module.id, durationMs);
+            } catch (err) {
+                logger.error("Error in module factory timing listener:\n", err);
+            }
+        }
     }
 
     exports = module.exports;

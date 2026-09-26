@@ -116,6 +116,25 @@ export const waitForSubscriptions = new Map<FilterFn, CallbackFn>();
 export const moduleListeners = new Set<CallbackFn>();
 export const factoryListeners = new Set<FactoryListernFn>();
 
+/** Stage 5 — optional factory timing (zero cost when Set is empty). */
+export type ModuleFactoryTimingListener = (moduleId: PropertyKey, durationMs: number) => void;
+export const moduleFactoryTimingListeners = new Set<ModuleFactoryTimingListener>();
+
+/** Stage 5 — optional webpack search timing (zero cost when Set is empty). */
+export type WebpackSearchTimingListener = (method: string, durationMs: number) => void;
+export const webpackSearchTimingListeners = new Set<WebpackSearchTimingListener>();
+
+export function timeWebpackSearch<T>(method: string, run: () => T): T {
+    if (webpackSearchTimingListeners.size === 0) return run();
+    const t0 = performance.now();
+    try {
+        return run();
+    } finally {
+        const ms = performance.now() - t0;
+        for (const listener of webpackSearchTimingListeners) listener(method, ms);
+    }
+}
+
 export function _initWebpack(webpackRequire: WebpackRequire) {
     wreq = webpackRequire;
     cache = webpackRequire.c;
@@ -436,10 +455,12 @@ export function findLazy(filter: FilterFn) {
  * Find the first module that has the specified properties
  */
 export function findByProps(...props: PropsFilter) {
-    const res = find(filters.byProps(...props), { isIndirect: true });
-    if (!res)
-        handleModuleNotFound("findByProps", ...props);
-    return res;
+    return timeWebpackSearch("findByProps", () => {
+        const res = find(filters.byProps(...props), { isIndirect: true });
+        if (!res)
+            handleModuleNotFound("findByProps", ...props);
+        return res;
+    });
 }
 
 /**
@@ -455,10 +476,12 @@ export function findByPropsLazy(...props: PropsFilter) {
  * Find the first function that includes all the given code
  */
 export function findByCode(...code: CodeFilter) {
-    const res = find(filters.byCode(...code), { isIndirect: true });
-    if (!res)
-        handleModuleNotFound("findByCode", ...code);
-    return res;
+    return timeWebpackSearch("findByCode", () => {
+        const res = find(filters.byCode(...code), { isIndirect: true });
+        if (!res)
+            handleModuleNotFound("findByCode", ...code);
+        return res;
+    });
 }
 
 /**

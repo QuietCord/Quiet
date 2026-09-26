@@ -22,3 +22,7 @@ export function getPerformanceHistory() {
 export function clearPerformanceHistory() {
     buffer.length = 0;
 }
+
+export function trimPerformanceHistory() {
+    if (buffer.length > MAX_POINTS) buffer.splice(0, buffer.length - MAX_POINTS);
+}

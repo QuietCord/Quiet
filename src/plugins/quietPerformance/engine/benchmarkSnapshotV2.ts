@@ -21,6 +21,7 @@ import { getGuildProfile } from "./stage4/guildWorkload";
 import { getPerformanceControllerState } from "./stage4/performanceController";
 import { resolveFeatureEnabled } from "./stage4/featureControl";
 import { getActiveSamplingPlan } from "./stage4/adaptiveSampling";
+import { captureQuietSelfProfile } from "./stage5/selfProfile";
 import type { AutoFeatureKey } from "./stage4/types";
 
 const AUTO_FEATURES: AutoFeatureKey[] = [
@@ -74,6 +75,7 @@ export interface BenchmarkSnapshotV2 {
     };
     process: Awaited<ReturnType<typeof readMetricsSnapshot>>;
     benchmarkWarnings: string[];
+    stage5?: ReturnType<typeof captureQuietSelfProfile>;
 }
 
 export async function captureBenchmarkSnapshotV2(label = "manual", guildId?: string | null): Promise<BenchmarkSnapshotV2> {
@@ -165,5 +167,6 @@ export async function captureBenchmarkSnapshotV2(label = "manual", guildId?: str
         },
         process: processMetrics,
         benchmarkWarnings,
+        stage5: settings.store.deepProfiler ? captureQuietSelfProfile() : undefined,
     };
 }

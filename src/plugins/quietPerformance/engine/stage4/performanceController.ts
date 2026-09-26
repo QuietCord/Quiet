@@ -17,6 +17,7 @@ import {
 } from "./featureControl";
 import { getGuildProfile, updateGuildProfile } from "./guildWorkload";
 import { pushPerformanceHistory } from "./performanceHistory";
+import { scheduleIdleMaintenance } from "../stage5/deferredIdle";
 import {
     getControllerTickMs,
     noteControllerTickComplete,
@@ -168,6 +169,7 @@ async function tick() {
             framePressure,
         });
         bumpResourceBudget("historyWrites", 1);
+        scheduleIdleMaintenance();
     }
 
     document.documentElement.dataset.vcQuietPerfMode = currentMode;
