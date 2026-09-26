@@ -22,6 +22,7 @@ import { mergeDefaults } from "@utils/mergeDefaults";
 import { DefinedSettings, OptionType, SettingsChecks, SettingsDefinition } from "@utils/types";
 import { React, useEffect } from "@webpack/common";
 
+import { CLOUD_API_URL } from "@shared/brand";
 import plugins from "~plugins";
 
 const logger = new Logger("Settings");
@@ -124,7 +125,7 @@ const DefaultSettings: Settings = {
 
     cloud: {
         authenticated: false,
-        url: "https://api.vencord.dev/",
+        url: CLOUD_API_URL,
         settingsSync: false,
         settingsSyncVersion: 0
     }

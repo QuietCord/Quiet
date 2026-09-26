@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { CLIENT_NAME, FORK_REPO } from "@shared/brand";
 import gitHash from "~git-hash";
 import gitRemote from "~git-remote";
 
 export { gitHash, gitRemote };
 
-export const VENCORD_USER_AGENT = `Vencord/${gitHash}${gitRemote ? ` (https://github.com/${gitRemote})` : ""}`;
+export const VENCORD_USER_AGENT = `${CLIENT_NAME}/${gitHash} (https://github.com/${gitRemote || FORK_REPO})`;

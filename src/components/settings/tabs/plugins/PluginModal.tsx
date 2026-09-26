@@ -24,6 +24,7 @@ import { useSettings } from "@api/Settings";
 import { BaseText } from "@components/BaseText";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { debounce } from "@shared/debounce";
+import { pluginDocsUrl } from "@shared/brand";
 import { gitRemote } from "@shared/vencordUserAgent";
 import { classNameFactory } from "@utils/css";
 import { proxyLazy } from "@utils/lazy";
@@ -180,10 +181,12 @@ export default function PluginModal({ plugin, onRestartNeeded, onClose, transiti
                                 isFavorite={pluginSettings.isFavorite ?? false}
                                 onClick={() => pluginSettings.isFavorite = !pluginSettings.isFavorite}
                             />
-                            <WebsiteButton
-                                text="View more info"
-                                href={`https://vencord.dev/plugins/${plugin.name}`}
-                            />
+                            {pluginDocsUrl(plugin.name) && (
+                                <WebsiteButton
+                                    text="View more info"
+                                    href={pluginDocsUrl(plugin.name)!}
+                                />
+                            )}
                             <GithubButton
                                 text="View source code"
                                 href={`https://github.com/${gitRemote}/tree/main/src/plugins/${pluginMeta.folderName}`}

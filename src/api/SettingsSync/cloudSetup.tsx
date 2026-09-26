@@ -5,6 +5,7 @@
  */
 
 import * as DataStore from "@api/DataStore";
+import { isTrustedCloudHost } from "@shared/brand";
 import { showNotification } from "@api/Notifications";
 import { Settings } from "@api/Settings";
 import { Logger } from "@utils/Logger";
@@ -20,7 +21,7 @@ export async function checkCloudUrlCsp() {
     if (IS_WEB) return true;
 
     const { host } = getCloudUrl();
-    if (host === "api.vencord.dev") return true;
+    if (isTrustedCloudHost(host)) return true;
 
     if (await VencordNative.csp.isDomainAllowed(Settings.cloud.url, ["connect-src"])) {
         return true;

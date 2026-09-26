@@ -31,6 +31,7 @@ import { CloudDownloadIcon, CloudUploadIcon, DeleteIcon, RestartIcon } from "@co
 import { Link } from "@components/Link";
 import { Paragraph } from "@components/Paragraph";
 import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
+import { CLIENT_NAME, CLOUD_BACKEND_SOURCE_URL, CLOUD_PRIVACY_URL } from "@shared/brand";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { IconComponent } from "@utils/types";
@@ -73,9 +74,11 @@ function CloudSetupSection() {
             <SectionHeading text="Cloud Integrations" />
 
             <Paragraph size="md" className={Margins.bottom20}>
-                Vencord comes with a cloud integration that adds goodies like settings sync across devices.
-                It <Link href="https://vencord.dev/cloud/privacy">respects your privacy</Link>, and
-                the <Link href="https://github.com/Vencord/Backend">source code</Link> is AGPL 3.0 licensed so you
+                {CLIENT_NAME} can use cloud integration for settings sync across devices.
+                {CLOUD_PRIVACY_URL
+                    ? <> See the <Link href={CLOUD_PRIVACY_URL}>privacy policy</Link>.</>
+                    : null}{" "}
+                The <Link href={CLOUD_BACKEND_SOURCE_URL}>backend source</Link> is AGPL 3.0 licensed so you
                 can host it yourself.
             </Paragraph>
             <FormSwitch
@@ -135,7 +138,7 @@ function SettingsSyncSection() {
                 <FormSwitch
                     key="cloud-sync"
                     title="Enable Settings Sync"
-                    description="Save your Vencord settings to the cloud so you can easily keep them the same on all your devices"
+                    description={`Save your ${CLIENT_NAME} settings to the cloud so you can easily keep them the same on all your devices`}
                     value={cloud.settingsSync}
                     onChange={v => { cloud.settingsSync = v; }}
                     disabled={!cloud.authenticated}

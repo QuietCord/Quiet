@@ -25,6 +25,7 @@ import { Heart } from "@components/Heart";
 import { CopyIcon, LinkIcon } from "@components/Icons";
 import DonateButton from "@components/settings/DonateButton";
 import { openContributorModal } from "@components/settings/tabs";
+import { BADGES_JSON_URL, CLIENT_NAME } from "@shared/brand";
 import { Devs } from "@utils/constants";
 import { copyWithToast } from "@utils/discord";
 import { Logger } from "@utils/Logger";
@@ -37,7 +38,7 @@ const CONTRIBUTOR_BADGE = "https://cdn.discordapp.com/emojis/1092089799109775453
 
 const ContributorBadge: ProfileBadge = {
     id: "vencord_contributor_badge",
-    description: "Vencord Contributor",
+    description: `${CLIENT_NAME} Contributor`,
     iconSrc: CONTRIBUTOR_BADGE,
     position: BadgePosition.START,
     shouldShow: ({ userId }) => shouldShowContributorBadge(userId),
@@ -47,11 +48,16 @@ const ContributorBadge: ProfileBadge = {
 let DonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
 
 async function loadBadges(noCache = false) {
+    if (!BADGES_JSON_URL) {
+        DonorBadges = {};
+        return;
+    }
+
     const init = {} as RequestInit;
     if (noCache)
         init.cache = "no-cache";
 
-    DonorBadges = await fetch("https://badges.vencord.dev/badges.json", init)
+    DonorBadges = await fetch(BADGES_JSON_URL, init)
         .then(r => r.json());
 }
 
