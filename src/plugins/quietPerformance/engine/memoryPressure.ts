@@ -9,6 +9,9 @@ import { Logger } from "@utils/Logger";
 import { readMetricsSnapshot } from "../metricsClient";
 import { trimInactiveMessageCaches } from "../messageCacheTrim";
 import { settings } from "../settings";
+import { getMemoryPressureTickMs } from "./stage4/adaptiveSampling";
+import { bumpResourceBudget, addEstimatedCpuMs } from "./resourceBudget";
+import { isRuntimeFeatureEnabled } from "./runtimeEffective";
 import { syncMediaVisibilityEngine } from "./mediaVisibility";
 import {
     canTrimAgain,
@@ -19,7 +22,8 @@ import {
 
 const logger = new Logger("QuietPerformance/MemoryPressure");
 
-let timer: ReturnType<typeof setInterval> | null = null;
+let timer: ReturnType<typeof setTimeout> | null = null;
+let scheduledMs = 30_000;
 let current: PressureLevel = "normal";
 
 function thresholds() {
@@ -92,7 +96,9 @@ function applyTierActions(next: PressureLevel) {
 }
 
 async function tick() {
-    if (!settings.store.memoryPressureController) {
+    const t0 = performance.now();
+    bumpResourceBudget("memoryPressureTicks", 1);
+    if (!isRuntimeFeatureEnabled("memoryPressureController") && !settings.store.memoryPressureController) {
         if (current !== "normal") {
             current = "normal";
             setMemoryPressureLevel("normal");
@@ -112,18 +118,37 @@ async function tick() {
         applyTierActions(next);
     } catch (e) {
         logger.error(e);
+    } finally {
+        addEstimatedCpuMs(performance.now() - t0);
     }
+}
+
+function scheduleMemoryLoop(immediate = false) {
+    if (timer) clearTimeout(timer);
+    scheduledMs = getMemoryPressureTickMs();
+    const run = () => {
+        void tick().finally(() => {
+            if (!isRuntimeFeatureEnabled("memoryPressureController") && !settings.store.memoryPressureController) {
+                timer = null;
+                return;
+            }
+            const next = getMemoryPressureTickMs();
+            if (next !== scheduledMs) scheduledMs = next;
+            timer = setTimeout(run, scheduledMs);
+        });
+    };
+    if (immediate) run();
+    else timer = setTimeout(run, scheduledMs);
 }
 
 export function startMemoryPressureController() {
     stopMemoryPressureController();
-    if (!settings.store.memoryPressureController) return;
-    void tick();
-    timer = setInterval(tick, 30_000);
+    if (!isRuntimeFeatureEnabled("memoryPressureController") && !settings.store.memoryPressureController) return;
+    scheduleMemoryLoop(true);
 }
 
 export function stopMemoryPressureController() {
-    if (timer) clearInterval(timer);
+    if (timer) clearTimeout(timer);
     timer = null;
     current = "normal";
     setMemoryPressureLevel("normal");

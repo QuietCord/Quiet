@@ -7,6 +7,10 @@
 import { useEffect, useState } from "@webpack/common";
 
 import { getProfilerSnapshot, type ProfilerSnapshot } from "./collector";
+import { getProfilerPanelMs } from "../engine/stage4/adaptiveSampling";
+import { getResourceBudgetSnapshot } from "../engine/resourceBudget";
+import { formatReactRenderStatsLines } from "../engine/reactComponentProfiler";
+import { settings } from "../settings";
 
 function Row({ label, value }: { label: string; value: string | number; }) {
     return (
@@ -27,7 +31,7 @@ export function ProfilerPanel() {
             if (!cancelled) setSnap(next);
         };
         void tick();
-        const id = setInterval(tick, 5000);
+        const id = setInterval(tick, getProfilerPanelMs());
         return () => {
             cancelled = true;
             clearInterval(id);
@@ -58,6 +62,10 @@ export function ProfilerPanel() {
             {lt && (
                 <Row label="Last long task" value={`${lt.durationMs}ms · ${lt.fluxLast100ms[0]?.type ?? "?"}×${lt.fluxLast100ms[0]?.count ?? 0}`} />
             )}
+            <Row label="Quiet overhead" value={`${getResourceBudgetSnapshot().controllerTicks} ctrl ticks · ${getResourceBudgetSnapshot().estimatedCpuMs} ms est.`} />
+            {settings.store.reactRenderProfiler && formatReactRenderStatsLines(3).map(line => (
+                <Row key={line} label="React" value={line} />
+            ))}
         </div>
     );
 }

@@ -7,7 +7,13 @@
 import { readMetricsSnapshot } from "@plugins/quietPerformance/metricsClient";
 import type { MetricsSnapshot } from "@plugins/quietPerformance/native";
 import { getLifecycleSnapshot } from "@plugins/quietPerformance/engine/lifecycleDebug";
-import { FluxDispatcher } from "@webpack/common";
+import { shouldRecordFluxDispatch } from "@plugins/quietPerformance/engine/stage4/adaptiveSampling";
+import { bumpResourceBudget } from "@plugins/quietPerformance/engine/resourceBudget";
+import {
+    observeFlux,
+    observeFrame,
+    observeLongTask,
+} from "@plugins/quietPerformance/engine/stage5/instrumentationBus";
 
 export interface LongTaskCorrelation {
     durationMs: number;
@@ -39,6 +45,13 @@ export interface ProfilerSnapshot {
     lastLongTask?: LongTaskCorrelation | null;
 }
 
+export interface FluxMetricsBundle {
+    fluxPerSec: number;
+    longTasksPerMin: number;
+    rates: Record<string, number>;
+}
+
+let metricsCollection = false;
 let enabled = false;
 let fluxCounts = new Map<string, number>();
 let fluxWindowStart = Date.now();
@@ -47,11 +60,9 @@ let longTaskCount = 0;
 let longTaskWindowStart = Date.now();
 let lastLongTask: LongTaskCorrelation | null = null;
 const frameTimes: number[] = [];
-let rafId = 0;
-let lastFrame = 0;
 let fluxHookInstalled = false;
-let longTaskObserver: PerformanceObserver | null = null;
-let dispatchOriginal: typeof FluxDispatcher.dispatch | null = null;
+let longTaskHookInstalled = false;
+let stopFrameObserve: (() => void) | null = null;
 
 let heapSessionLowMb = Number.MAX_SAFE_INTEGER;
 let heapPeakMb = 0;
@@ -74,6 +85,7 @@ function tickFluxRate() {
 }
 
 function recordFlux(type: string) {
+    if (!shouldRecordFluxDispatch()) return;
     const now = Date.now();
     tickFluxRate();
     fluxCounts.set(type, (fluxCounts.get(type) ?? 0) + 1);
@@ -94,43 +106,72 @@ function fluxWindowCounts(ms: number) {
         .map(([type, count]) => ({ type, count }));
 }
 
-function installFluxHook() {
-    if (fluxHookInstalled) return;
-    fluxHookInstalled = true;
-    dispatchOriginal = FluxDispatcher.dispatch.bind(FluxDispatcher);
-    FluxDispatcher.dispatch = function (payload: { type?: string; }) {
-        if (enabled && payload?.type) recordFlux(payload.type);
-        return dispatchOriginal!(payload);
+function shouldRecordMetrics() {
+    return enabled || metricsCollection;
+}
+
+export function ensureFluxMetricsCollection() {
+    if (metricsCollection) return;
+    metricsCollection = true;
+    installFluxHook();
+    installLongTaskObserver();
+}
+
+export function getFluxMetricsBundle(): FluxMetricsBundle {
+    const now = Date.now();
+    const fluxElapsed = Math.max(1, (now - fluxWindowStart) / 1000);
+    const rates: Record<string, number> = {};
+    for (const [type, count] of fluxCounts) {
+        rates[type] = Math.round((count / fluxElapsed) * 10) / 10;
+    }
+    const ltElapsedMin = Math.max(1 / 60, (now - longTaskWindowStart) / 60_000);
+    return {
+        fluxPerSec: Math.round(([...fluxCounts.values()].reduce((a, b) => a + b, 0) / fluxElapsed) * 10) / 10,
+        longTasksPerMin: Math.round((longTaskCount / ltElapsedMin) * 10) / 10,
+        rates,
     };
 }
 
+function installFluxHook() {
+    if (fluxHookInstalled) return;
+    fluxHookInstalled = true;
+    observeFlux(payload => {
+        if (shouldRecordMetrics() && payload?.type) recordFlux(payload.type);
+    });
+}
+
 function installLongTaskObserver() {
-    if (longTaskObserver || typeof PerformanceObserver === "undefined") return;
-    try {
-        longTaskObserver = new PerformanceObserver(list => {
+    if (longTaskHookInstalled) return;
+    longTaskHookInstalled = true;
+    observeLongTask(entry => {
+        if (!shouldRecordMetrics()) return;
+        longTaskCount++;
+        lastLongTask = {
+            durationMs: Math.round(entry.duration),
+            fluxLast100ms: fluxWindowCounts(100),
+        };
+    });
+}
+
+export function startProfiler() {
+    if (enabled) return;
+    enabled = true;
+    ensureFluxMetricsCollection();
+    installLongTaskObserver();
+    if (!stopFrameObserve) {
+        stopFrameObserve = observeFrame(dt => {
             if (!enabled) return;
-            for (const entry of list.getEntries()) {
-                longTaskCount++;
-                lastLongTask = {
-                    durationMs: Math.round(entry.duration),
-                    fluxLast100ms: fluxWindowCounts(100),
-                };
-            }
+            frameTimes.push(dt);
+            if (frameTimes.length > 180) frameTimes.shift();
         });
-        longTaskObserver.observe({ entryTypes: ["longtask"] });
-    } catch {
-        longTaskObserver = null;
     }
 }
 
-function rafLoop(now: number) {
-    if (enabled && lastFrame) {
-        const dt = now - lastFrame;
-        frameTimes.push(dt);
-        if (frameTimes.length > 180) frameTimes.shift();
-    }
-    lastFrame = now;
-    rafId = requestAnimationFrame(rafLoop);
+export function stopProfiler() {
+    enabled = false;
+    stopFrameObserve?.();
+    stopFrameObserve = null;
+    frameTimes.length = 0;
 }
 
 function updateMemoryStats(jsHeapUsedMb: number, ramMb: number) {
@@ -163,22 +204,6 @@ function ramRecoveryPct(current: number) {
     const span = ramPeakMb - ramSessionLowMb;
     if (span <= 0) return 100;
     return Math.round(((ramPeakMb - current) / span) * 100);
-}
-
-export function startProfiler() {
-    if (enabled) return;
-    enabled = true;
-    installFluxHook();
-    installLongTaskObserver();
-    if (!rafId) rafId = requestAnimationFrame(rafLoop);
-}
-
-export function stopProfiler() {
-    enabled = false;
-    if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = 0;
-    }
 }
 
 export async function getProfilerSnapshot(): Promise<ProfilerSnapshot> {

@@ -4,9 +4,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { FluxDispatcher } from "@webpack/common";
-
-import { settings } from "../settings";
+import { coalesceLatest, coalescePerFrame } from "./coalescingEngine";
+import { isRuntimeFeatureEnabled } from "./runtimeEffective";
+import {
+    emitFluxPayload,
+    getBaseFluxDispatch,
+    setFluxMiddleware,
+    type FluxDispatchFn,
+    type FluxPayload,
+} from "./stage5/instrumentationBus";
 
 /** Per-channel row dimensions — safe to last-write-wins per channelId. */
 const CHANNEL_ROW_TYPE = "UPDATE_CHANNEL_DIMENSIONS";
@@ -28,18 +34,25 @@ const FLUSH_LAYOUT_BEFORE = new Set([
 
 const DEFERRED_DISPATCH = Promise.resolve();
 const MAX_LAYOUT_DEFER_MS = 48;
+const MAX_LIST_QUEUE = 64;
+const MAX_TYPING_QUEUE = 120;
 
 let installed = false;
 let connectionReady = false;
-let original: typeof FluxDispatcher.dispatch | null = null;
-
-/** Last-write-wins per channel row. */
-let rowCoalesce = new Map<string, unknown>();
-/** All list-dimension updates in this frame (no global merge). */
-let listDimensionQueue: unknown[] = [];
-let typingQueue: unknown[] = [];
-let rafHandle = 0;
 let layoutSafetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+let listFrame = coalescePerFrame<FluxPayload>(batch => {
+    for (const payload of batch) emitFluxPayload(payload);
+});
+
+let rowLatest = coalesceLatest<string, FluxPayload>(
+    payload => (payload.type === CHANNEL_ROW_TYPE && payload.channelId ? payload.channelId : null),
+    payload => emitFluxPayload(payload),
+);
+
+let typingFrame = coalescePerFrame<FluxPayload>(batch => {
+    for (const payload of batch) emitFluxPayload(payload);
+});
 
 export function markFluxBatchingConnectionReady() {
     connectionReady = true;
@@ -47,25 +60,13 @@ export function markFluxBatchingConnectionReady() {
 
 export function resetFluxBatchingConnectionReady() {
     connectionReady = false;
-    cancelRaf();
-    clearLayoutSafetyTimer();
+    cancelLayoutCoalescing();
     flushAll();
 }
 
 function anyEnabled() {
-    return settings.store.channelLayoutCoalesce || settings.store.batchTypingUpdates;
-}
-
-function rowKey(payload: { type?: string; channelId?: string; }) {
-    if (payload.type !== CHANNEL_ROW_TYPE || !payload.channelId) return null;
-    return payload.channelId;
-}
-
-function cancelRaf() {
-    if (rafHandle) {
-        cancelAnimationFrame(rafHandle);
-        rafHandle = 0;
-    }
+    return isRuntimeFeatureEnabled("channelLayoutCoalesce")
+        || isRuntimeFeatureEnabled("batchTypingUpdates");
 }
 
 function clearLayoutSafetyTimer() {
@@ -83,34 +84,20 @@ function scheduleLayoutSafetyFlush() {
     }, MAX_LAYOUT_DEFER_MS);
 }
 
-function flushLayout() {
-    if (!original) return;
+function cancelLayoutCoalescing() {
+    listFrame.cancel();
+    rowLatest.cancel();
     clearLayoutSafetyTimer();
+}
 
-    if (rowCoalesce.size > 0) {
-        const rows = rowCoalesce;
-        rowCoalesce = new Map();
-        for (const payload of rows.values()) {
-            original(payload as { type?: string; });
-        }
-    }
-
-    if (listDimensionQueue.length > 0) {
-        const list = listDimensionQueue;
-        listDimensionQueue = [];
-        for (const payload of list) {
-            original(payload as { type?: string; });
-        }
-    }
+function flushLayout() {
+    clearLayoutSafetyTimer();
+    rowLatest.flushNow();
+    listFrame.flushNow();
 }
 
 function flushTyping() {
-    if (!original || typingQueue.length === 0) return;
-    const batch = typingQueue;
-    typingQueue = [];
-    for (const payload of batch) {
-        original(payload as { type?: string; });
-    }
+    typingFrame.flushNow();
 }
 
 function flushAll() {
@@ -119,42 +106,33 @@ function flushAll() {
 }
 
 function hasPendingLayout() {
-    return rowCoalesce.size > 0 || listDimensionQueue.length > 0;
+    return rowLatest.pending() > 0 || listFrame.pending() > 0;
 }
 
-function scheduleRafFlush() {
-    if (rafHandle) return;
-    rafHandle = requestAnimationFrame(() => {
-        rafHandle = 0;
-        flushAll();
-    });
+function scheduleLayoutWork() {
     scheduleLayoutSafetyFlush();
 }
 
-function deferLayout(payload: { type?: string; channelId?: string; guildId?: string; }) {
+function deferLayout(payload: FluxPayload) {
     if (payload.type === CHANNEL_LIST_TYPE) {
-        listDimensionQueue.push(payload);
-        if (listDimensionQueue.length > 64) flushLayout();
-        else scheduleRafFlush();
+        listFrame.push(payload);
+        if (listFrame.pending() > MAX_LIST_QUEUE) flushLayout();
+        else scheduleLayoutWork();
         return;
     }
 
-    if (payload.type === CHANNEL_ROW_TYPE) {
-        const key = rowKey(payload);
-        if (key) {
-            rowCoalesce.set(key, payload);
-            scheduleRafFlush();
-            return;
-        }
+    if (payload.type === CHANNEL_ROW_TYPE && payload.channelId) {
+        rowLatest.push(payload);
+        scheduleLayoutWork();
+        return;
     }
 
-    original!(payload);
+    emitFluxPayload(payload);
 }
 
-function deferTyping(payload: unknown) {
-    typingQueue.push(payload);
-    if (typingQueue.length > 120) flushTyping();
-    else scheduleRafFlush();
+function deferTyping(payload: FluxPayload) {
+    typingFrame.push(payload);
+    if (typingFrame.pending() > MAX_TYPING_QUEUE) flushTyping();
 }
 
 function isLayoutType(type: string) {
@@ -162,53 +140,50 @@ function isLayoutType(type: string) {
 }
 
 function maybeFlushLayoutBefore(type: string | undefined) {
-    if (!type || !settings.store.channelLayoutCoalesce || !hasPendingLayout()) return;
+    if (!type || !hasPendingLayout() || !isRuntimeFeatureEnabled("channelLayoutCoalesce")) return;
     if (!FLUSH_LAYOUT_BEFORE.has(type)) return;
-    cancelRaf();
+    cancelLayoutCoalescing();
     flushLayout();
+}
+
+function batchingMiddleware(payload: FluxPayload, next: FluxDispatchFn) {
+    const type = payload?.type;
+
+    if (anyEnabled() && connectionReady) {
+        maybeFlushLayoutBefore(type);
+    }
+
+    if (!anyEnabled() || !connectionReady || !type) {
+        return next(payload);
+    }
+
+    if (isRuntimeFeatureEnabled("channelLayoutCoalesce") && isLayoutType(type)) {
+        deferLayout(payload);
+        return DEFERRED_DISPATCH;
+    }
+
+    if (isRuntimeFeatureEnabled("batchTypingUpdates") && TYPING_TYPES.has(type)) {
+        deferTyping(payload);
+        return DEFERRED_DISPATCH;
+    }
+
+    return next(payload);
 }
 
 export function startFluxBatching() {
     if (installed) return;
     if (!anyEnabled()) return;
     installed = true;
-    original = FluxDispatcher.dispatch.bind(FluxDispatcher);
-    FluxDispatcher.dispatch = function (payload: { type?: string; channelId?: string; guildId?: string; }) {
-        const type = payload?.type;
-
-        if (anyEnabled() && connectionReady) {
-            maybeFlushLayoutBefore(type);
-        }
-
-        if (!anyEnabled() || !connectionReady || !type) {
-            return original!(payload);
-        }
-
-        if (settings.store.channelLayoutCoalesce && isLayoutType(type)) {
-            deferLayout(payload);
-            return DEFERRED_DISPATCH;
-        }
-
-        if (settings.store.batchTypingUpdates && TYPING_TYPES.has(type)) {
-            deferTyping(payload);
-            return DEFERRED_DISPATCH;
-        }
-
-        return original!(payload);
-    };
+    getBaseFluxDispatch();
+    setFluxMiddleware(batchingMiddleware);
 }
 
 export function stopFluxBatching() {
     if (!installed) return;
-    cancelRaf();
-    clearLayoutSafetyTimer();
+    cancelLayoutCoalescing();
     flushAll();
-    if (original) FluxDispatcher.dispatch = original;
-    original = null;
+    setFluxMiddleware(null);
     installed = false;
-    rowCoalesce.clear();
-    listDimensionQueue = [];
-    typingQueue = [];
 }
 
 export function syncFluxBatching() {

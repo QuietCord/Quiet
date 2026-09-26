@@ -4,8 +4,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { settings } from "../settings";
+import { bumpResourceBudget } from "./resourceBudget";
 import { isBackgroundMode } from "./adaptiveBackground";
+import { isRuntimeFeatureEnabled } from "./runtimeEffective";
+
+function mediaVisibilityActive() {
+    return isRuntimeFeatureEnabled("mediaVisibleOnly");
+}
 
 const observed = new WeakSet<Element>();
 let observer: IntersectionObserver | null = null;
@@ -19,37 +24,75 @@ function isGifLike(el: Element) {
     return src.includes(".gif") || src.includes("/gif");
 }
 
+const OFFSCREEN_UNLOAD_MS = 10 * 60 * 1000;
+const lastVisibleAt = new WeakMap<Element, number>();
+
 function applyMediaState(el: Element, visible: boolean) {
+    bumpResourceBudget("mediaVisibilityCallbacks", 1);
+    const now = Date.now();
+    if (visible) lastVisibleAt.set(el, now);
+    const lastSeen = lastVisibleAt.get(el) ?? now;
+
     if (el.tagName === "VIDEO") {
         const v = el as HTMLVideoElement;
         if (!visible || isBackgroundMode()) {
             try { v.pause(); } catch { /* noop */ }
             v.dataset.vcQuietPaused = "1";
-        } else if (v.dataset.vcQuietPaused && settings.store.mediaVisibleOnly) {
+        } else if (v.dataset.vcQuietPaused && mediaVisibilityActive()) {
             delete v.dataset.vcQuietPaused;
+            try { void v.play(); } catch { /* user gesture */ }
+        }
+        if (!visible && v.dataset.vcQuietSrc) {
+            if (now - lastSeen > OFFSCREEN_UNLOAD_MS && !v.dataset.vcQuietUnloaded) {
+                v.dataset.vcQuietUnloaded = "1";
+                v.removeAttribute("src");
+                v.load();
+            }
+        } else if (visible && v.dataset.vcQuietUnloaded && v.dataset.vcQuietSrc) {
+            v.src = v.dataset.vcQuietSrc;
+            delete v.dataset.vcQuietUnloaded;
         }
         return;
     }
     if (el.tagName === "IMG" && isGifLike(el)) {
-        (el as HTMLImageElement).style.contentVisibility = visible ? "" : "hidden";
+        const img = el as HTMLImageElement;
+        if (!visible) {
+            img.style.contentVisibility = "hidden";
+            if (now - lastSeen > OFFSCREEN_UNLOAD_MS && img.src && !img.dataset.vcQuietSrc) {
+                img.dataset.vcQuietSrc = img.src;
+                img.removeAttribute("src");
+                img.dataset.vcQuietUnloaded = "1";
+            }
+        } else {
+            img.style.contentVisibility = "";
+            if (img.dataset.vcQuietUnloaded && img.dataset.vcQuietSrc) {
+                img.src = img.dataset.vcQuietSrc;
+                delete img.dataset.vcQuietUnloaded;
+            }
+        }
     }
 }
 
 function observeElement(el: Element) {
     if (observed.has(el) || !observer) return;
     observed.add(el);
+    lastVisibleAt.set(el, Date.now());
+    if (el.tagName === "VIDEO") {
+        const v = el as HTMLVideoElement;
+        if (v.src && !v.dataset.vcQuietSrc) v.dataset.vcQuietSrc = v.src;
+    }
     observer.observe(el);
 }
 
 function scan(root: ParentNode) {
-    if (!settings.store.mediaVisibleOnly) return;
+    if (!mediaVisibilityActive()) return;
     root.querySelectorAll("video, img").forEach(el => {
         if (isGifLike(el)) observeElement(el);
     });
 }
 
 export function startMediaVisibilityEngine() {
-    if (started || !settings.store.mediaVisibleOnly) return;
+    if (started || !mediaVisibilityActive()) return;
     if (typeof IntersectionObserver === "undefined") return;
     started = true;
 

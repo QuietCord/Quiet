@@ -7,15 +7,18 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 
-import { LazyComponent } from "@utils/lazyReact";
-
 import { presetNeedsConfirmation } from "./presetRisk";
+import { PerformanceAutoPanel } from "./PerformanceAutoPanel";
+import { PerformanceHistoryPanel } from "./PerformanceHistoryPanel";
+import { PerformanceSettingsExtras } from "./PerformanceSettingsExtras";
 
 import { getPresetPatch, isApplyingPreset, type PerformanceProfile, withPresetApply } from "./presets";
 
-const PerformanceSettingsExtras = LazyComponent(() =>
-    import("./PerformanceSettingsExtras").then(m => ({ default: m.PerformanceSettingsExtras })),
-);
+const FEATURE_MODE_OPTIONS = [
+    { label: "Auto — Quiet decides when busy", value: "auto", default: true },
+    { label: "On — always enable", value: "on" },
+    { label: "Off — never enable", value: "off" },
+] as const;
 
 const CLASS = {
     motion: "vc-quiet-perf-motion",
@@ -48,6 +51,11 @@ function onContentToggle() {
 }
 
 function onAdaptiveEngineChange() {
+    markCustomProfile();
+    (Vencord.Plugins.plugins.QuietPerformance as { syncAdaptiveEngine?: () => void; })?.syncAdaptiveEngine?.();
+}
+
+function onStage4Change() {
     markCustomProfile();
     (Vencord.Plugins.plugins.QuietPerformance as { syncAdaptiveEngine?: () => void; })?.syncAdaptiveEngine?.();
 }
@@ -286,6 +294,72 @@ export const settings = definePluginSettings({
         type: OptionType.BOOLEAN,
         description: "Auto-disable experimental optimizations after repeated runtime errors (Patch Health / safety layer).",
         default: true,
+    },
+    autoPerformanceController: {
+        type: OptionType.BOOLEAN,
+        description: "Stage 4 — Rolling metrics (8s) choose BUSY/HIGH LOAD/MEMORY PRESSURE and enable experimental features only when needed. Visible in Stage 4 panel below.",
+        default: false,
+        onChange: onStage4Change,
+    },
+    performanceSafeMode: {
+        type: OptionType.BOOLEAN,
+        description: "Safe mode — force all auto/experimental adaptive patches OFF (basic Quiet + profiles). Use after Discord updates.",
+        default: false,
+        onChange: onStage4Change,
+    },
+    benchmarkMode: {
+        type: OptionType.BOOLEAN,
+        description: "Benchmark — faster controller ticks (3s), auto-tuning uses manual legacy toggles only (no AUTO decisions). For comparable exports.",
+        default: false,
+        onChange(value: boolean) {
+            onStage4Change();
+            void import("./engine/benchmarkSession").then(({ markBenchmarkSessionStart, clearBenchmarkSession }) => {
+                if (value) markBenchmarkSessionStart("benchmark");
+                else clearBenchmarkSession();
+            });
+        },
+    },
+    channelLayoutCoalesceMode: {
+        type: OptionType.SELECT,
+        description: "Channel layout coalesce — AUTO/ON/OFF (overrides the boolean above when set).",
+        options: [...FEATURE_MODE_OPTIONS],
+        default: "auto",
+        onChange: onStage4Change,
+    },
+    batchTypingUpdatesMode: {
+        type: OptionType.SELECT,
+        description: "Typing visual batch — AUTO/ON/OFF.",
+        options: [...FEATURE_MODE_OPTIONS],
+        default: "auto",
+        onChange: onStage4Change,
+    },
+    memoryPressureControllerMode: {
+        type: OptionType.SELECT,
+        description: "Memory pressure tiers — AUTO/ON/OFF.",
+        options: [...FEATURE_MODE_OPTIONS],
+        default: "auto",
+        onChange: onStage4Change,
+    },
+    mediaVisibleOnlyMode: {
+        type: OptionType.SELECT,
+        description: "Off-screen media throttle — AUTO/ON/OFF.",
+        options: [...FEATURE_MODE_OPTIONS],
+        default: "auto",
+        onChange: onStage4Change,
+    },
+    stage4Panel: {
+        type: OptionType.COMPONENT,
+        component: PerformanceAutoPanel,
+    },
+    performanceHistoryPanel: {
+        type: OptionType.COMPONENT,
+        component: PerformanceHistoryPanel,
+    },
+    reactRenderProfiler: {
+        type: OptionType.BOOLEAN,
+        description: "Experimental — Count renders for hot Discord components (Message, Avatar, ChannelRow, MemberListItem). Profiler-style overhead when enabled.",
+        default: false,
+        onChange: onAdaptiveEngineChange,
     },
     stage3Panel: {
         type: OptionType.COMPONENT,

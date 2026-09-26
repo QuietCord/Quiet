@@ -4,35 +4,43 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { LazyComponent } from "@utils/lazyReact";
-import { useEffect, useState } from "@webpack/common";
+import { React, useEffect, useState } from "@webpack/common";
 
-import { formatMetricsLine, readMetricsSnapshot, SAMPLER_MS } from "./metricsClient";
+import { formatMetricsLine, readMetricsSnapshot } from "./metricsClient";
+import { getMetricsSamplerMs } from "./engine/stage4/adaptiveSampling";
+import { bumpResourceBudget } from "./engine/resourceBudget";
 import { settings } from "./settings";
 
-const ProfilerPanel = LazyComponent(() =>
-    import("./profiler/ProfilerPanel").then(m => ({ default: m.ProfilerPanel })),
-);
+function ProfilerPanelLazy() {
+    const [Panel, setPanel] = useState<React.ComponentType | null>(null);
+    useEffect(() => {
+        void import("./profiler/ProfilerPanel").then(m => setPanel(() => m.ProfilerPanel));
+    }, []);
+    if (!Panel) return null;
+    return <Panel />;
+}
 
 export function UsageOverlay() {
     const [line, setLine] = useState("…");
 
     useEffect(() => {
         let cancelled = false;
+        let timer: ReturnType<typeof setTimeout> | null = null;
         const tick = async () => {
             try {
+                bumpResourceBudget("samplerCallbacks", 1);
                 const snap = await readMetricsSnapshot(false);
                 if (cancelled) return;
                 setLine(formatMetricsLine(snap));
             } catch {
                 if (!cancelled) setLine("usage n/a");
             }
+            if (!cancelled) timer = setTimeout(tick, getMetricsSamplerMs());
         };
         void tick();
-        const id = setInterval(tick, SAMPLER_MS);
         return () => {
             cancelled = true;
-            clearInterval(id);
+            if (timer) clearTimeout(timer);
         };
     }, []);
 
@@ -44,7 +52,7 @@ export function UsageOverlay() {
             >
                 {line}
             </div>
-            {settings.store.enableProfiler && <ProfilerPanel />}
+            {settings.store.enableProfiler && <ProfilerPanelLazy />}
         </>
     );
 }

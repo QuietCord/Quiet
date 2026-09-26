@@ -5,10 +5,11 @@
  */
 
 import { Button, Forms } from "@webpack/common";
+import { useEffect, useState } from "@webpack/common";
 
 import { ExpandableFeatureDetail } from "./ExpandableFeatureDetail";
-import { syncAdaptiveEngine } from "./engine/index";
-import { getAutoDisabledOptimizations } from "./engine/optimizationSafety";
+import { syncAdaptiveEngine, getPluginCostReport } from "./engine/index";
+import { getAutoDisabledOptimizations, getCrashAttributionLog } from "./engine/optimizationSafety";
 import { disableAllExperimentalOptimizations, getExperimentalEnabledKeys, restoreRecommendedPerformanceSettings } from "./engine/safety";
 import { settings } from "./settings";
 
@@ -34,6 +35,12 @@ const REFERENCE_META_KEYS = [
 export function PerformanceSettingsExtras() {
     const experimentalOn = getExperimentalEnabledKeys();
     const autoDisabled = getAutoDisabledOptimizations();
+    const pluginReport = getPluginCostReport();
+    const [crashLog, setCrashLog] = useState<Awaited<ReturnType<typeof getCrashAttributionLog>>>([]);
+
+    useEffect(() => {
+        void getCrashAttributionLog().then(setCrashLog);
+    }, [autoDisabled.length]);
 
     return (
         <section className="vc-quiet-perf-settings-extras">
@@ -61,6 +68,20 @@ export function PerformanceSettingsExtras() {
                 <Forms.FormText className="vc-quiet-perf-risk-warn">
                     Auto-disabled after errors: {autoDisabled.join(", ")}
                 </Forms.FormText>
+            )}
+            {crashLog.length > 0 && (
+                <Forms.FormText className="vc-quiet-perf-risk-muted">
+                    Crash attribution: {crashLog.slice(-3).map(e => `${e.feature} (${e.count}×, build ${e.discordBuild})`).join(" · ")}
+                </Forms.FormText>
+            )}
+
+            {pluginReport.warnings.length > 0 && (
+                <>
+                    <Forms.FormTitle tag="h5" className="vc-quiet-perf-section-gap">Plugin cost (static)</Forms.FormTitle>
+                    {pluginReport.warnings.map(w => (
+                        <Forms.FormText key={w} className="vc-quiet-perf-risk-warn">{w}</Forms.FormText>
+                    ))}
+                </>
             )}
 
             <Forms.FormTitle tag="h5" className="vc-quiet-perf-section-gap">Recovery</Forms.FormTitle>

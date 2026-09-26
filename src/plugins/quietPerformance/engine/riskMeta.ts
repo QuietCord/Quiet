@@ -10,7 +10,7 @@ export interface FeatureMeta {
     id: string;
     title: string;
     risk: RiskLevel;
-    stage: 1 | 2 | 3;
+    stage: 1 | 2 | 3 | 4;
     restart?: boolean;
     whatItDoes: string;
     disables?: string;
@@ -23,7 +23,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "adaptiveBackground",
         title: "Adaptive background mode",
         risk: "safe",
-        stage: 3,
+        stage: 4,
         whatItDoes: "When Discord is unfocused, hidden, or minimized, pauses motion/GIF autoplay and reduces visual work. Voice and messages are untouched.",
         benefit: "Lower idle CPU when Discord is in the tray or behind other windows.",
     },
@@ -31,7 +31,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "memoryPressureController",
         title: "Adaptive memory pressure",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Tiered RAM response (~850/950/1100 MB default) with hysteresis: elevated → pressure → high. Incremental inactive cache trim and off-screen media pressure.",
         disables: "Does not block messages, voice, or notifications.",
         sideEffects: "Older history or media may reload after cleanup.",
@@ -41,7 +41,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "batchPresenceUpdates",
         title: "Batch presence updates",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Groups PRESENCE_UPDATE / GUILD_MEMBER_UPDATE into short windows before dispatch continues.",
         sideEffects: "Online/idle badges and activities may update up to ~32ms later.",
         benefit: "Fewer render cascades when presence churn is high.",
@@ -50,7 +50,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "channelLayoutCoalesce",
         title: "Coalesce channel list layout",
         risk: "caution",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Defers channel list dimension dispatches to one animation frame (keeps every list update, does not merge into one global payload). Row dimensions coalesce per channelId. Flushes before MESSAGE_CREATE / channel switch.",
         sideEffects: "Rare sidebar glitches if Discord changes dimension payloads; sending a message forces flush if stuck.",
         benefit: "Targets load spikes from dimension storms in large servers (lower P95/long tasks).",
@@ -59,7 +59,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "batchTypingUpdates",
         title: "Typing visual batch",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Groups TYPING_START/STOP visual dispatches to one requestAnimationFrame batch.",
         sideEffects: "Typing dots may lag ~1 frame.",
         benefit: "Fewer typing indicator rerenders in busy channels.",
@@ -68,7 +68,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "mediaVisibleOnly",
         title: "Visible-only media",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Pauses off-screen videos and defers GIF paint until near the viewport.",
         sideEffects: "Media may pop in when scrolling; background mode still pauses playback.",
         benefit: "Less decode/CPU for off-screen chat media.",
@@ -77,7 +77,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "reactMemoHotPath",
         title: "React memo hot paths",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Wraps Message/Avatar exports with React.memo and shallow prop compares when sub-toggles are on.",
         sideEffects: "Stale UI if compare misses a prop Discord expects (plugins, edits, reactions).",
         benefit: "Skips redundant Message/Avatar renders when props are unchanged.",
@@ -86,7 +86,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "lifecycleDebug",
         title: "Lifecycle debug counters",
         risk: "experimental",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Counts active timers created via patched setTimeout/setInterval.",
         sideEffects: "Tiny overhead; dev-oriented.",
         benefit: "Spot runaway timers in profiler export.",
@@ -95,7 +95,7 @@ export const FEATURE_META: Record<string, FeatureMeta> = {
         id: "messageCacheV2",
         title: "Tiered message cache (LRU)",
         risk: "caution",
-        stage: 3,
+        stage: 4,
         whatItDoes: "Active channel keeps a higher cap; recently visited channels medium; abandoned channels low.",
         sideEffects: "Switching back to old channels may re-fetch history.",
         benefit: "Less MessageStore RAM across many visited channels.",

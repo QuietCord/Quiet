@@ -10,11 +10,24 @@ import definePlugin, { type PluginNative } from "@utils/types";
 import { onceReady } from "@webpack";
 import { createRoot, showToast, Toasts } from "@webpack/common";
 
-import { copyBenchmarkToClipboard } from "./engine/benchmark";
+import { copyBenchmarkToClipboard, captureBenchmarkSnapshotV2 } from "./engine/benchmark";
+import {
+    clearBenchmarkBaseline,
+    compareBenchmarkSnapshots,
+    formatComparisonSummary,
+    getBenchmarkBaseline,
+    saveBenchmarkBaseline,
+} from "./engine/baselineRegressionV2";
 import { clearProfilerBaseline, copyComparisonToClipboard, saveProfilerBaseline } from "./engine/comparisonMode";
 import { markQuietPerfConnectionOpen, markQuietPerfPluginStart, markQuietPerfUiReady } from "./engine/startupProfile";
 import { markFluxBatchingConnectionReady } from "./engine/fluxBatching";
-import { startAdaptiveEngine, stopAdaptiveEngine, syncAdaptiveEngine as reloadAdaptiveEngine } from "./engine/index";
+import { notePerformanceGuild } from "./engine/stage4/performanceController";
+import {
+    startAdaptiveEngine,
+    stopAdaptiveEngine,
+    syncAdaptiveEngine as reloadAdaptiveEngine,
+    syncAdaptiveEngineFromController as applyControllerAdaptiveSync,
+} from "./engine/index";
 import { noteChannelVisit } from "./engine/adaptiveBackground";
 import { resolveMessageCacheCap } from "./engine/messageCacheV2";
 import { trimInactiveMessageCaches } from "./messageCacheTrim";
@@ -28,6 +41,7 @@ import {
 } from "./settings";
 import managedStyle from "./style.css?managed";
 import { UsageOverlay } from "./UsageOverlay";
+import { ChannelStore, SelectedGuildStore } from "@webpack/common";
 
 const logger = new Logger("QuietPerformance");
 
@@ -57,9 +71,12 @@ export default definePlugin({
         CONNECTION_OPEN() {
             markQuietPerfConnectionOpen();
             markFluxBatchingConnectionReady();
+            notePerformanceGuild(SelectedGuildStore.getGuildId());
         },
         CHANNEL_SELECT({ channelId }: { channelId?: string; }) {
             noteChannelVisit(channelId ?? null);
+            const ch = channelId ? ChannelStore.getChannel(channelId) : null;
+            notePerformanceGuild(ch?.guild_id ?? SelectedGuildStore.getGuildId());
             trimInactiveMessageCaches();
         },
     },
@@ -120,7 +137,8 @@ export default definePlugin({
             all: true,
             predicate: () => settings.store.pauseGifAutoplay,
             replacement: {
-                match: /autoPlayGif:(\i)/g,
+                // Avoid `autoPlayGif:\i` — it matches destructuring aliases and breaks modules.
+                match: /autoPlayGif:!0/g,
                 replace: "autoPlayGif:!1",
             },
         },
@@ -180,8 +198,29 @@ export default definePlugin({
             );
         },
         "Export benchmark JSON": async () => {
-            await copyBenchmarkToClipboard();
-            showToast("Benchmark snapshot copied to clipboard", Toasts.Type.SUCCESS);
+            await copyBenchmarkToClipboard(SelectedGuildStore.getGuildId());
+            showToast("Benchmark snapshot V2 copied to clipboard", Toasts.Type.SUCCESS);
+        },
+        "Save Stage 4 benchmark baseline": async () => {
+            const snap = await captureBenchmarkSnapshotV2("stage4-baseline", SelectedGuildStore.getGuildId());
+            await saveBenchmarkBaseline(snap);
+            showToast("Stage 4 benchmark baseline saved locally", Toasts.Type.SUCCESS);
+        },
+        "Compare to Stage 4 baseline": async () => {
+            const baseline = await getBenchmarkBaseline();
+            if (!baseline) {
+                showToast("Save Stage 4 benchmark baseline first", Toasts.Type.MESSAGE);
+                return;
+            }
+            const after = await captureBenchmarkSnapshotV2("compare", SelectedGuildStore.getGuildId());
+            const report = compareBenchmarkSnapshots(baseline, after);
+            const text = JSON.stringify({ summary: formatComparisonSummary(report), report }, null, 2);
+            await navigator.clipboard.writeText(text);
+            showToast(report.warnings[0] ?? "Comparison copied to clipboard", Toasts.Type.SUCCESS);
+        },
+        "Clear Stage 4 baseline": async () => {
+            await clearBenchmarkBaseline();
+            showToast("Stage 4 benchmark baseline cleared", Toasts.Type.SUCCESS);
         },
         "Save profiler baseline": async () => {
             const snap = await getProfilerSnapshot();
@@ -201,6 +240,11 @@ export default definePlugin({
 
     syncAdaptiveEngine() {
         reloadAdaptiveEngine();
+        void onceReady.then(() => import("./engine/reactComponentProfiler").then(m => m.installReactRenderProfiler()));
+    },
+
+    syncAdaptiveEngineFromController() {
+        applyControllerAdaptiveSync();
     },
 
     start() {

@@ -230,3 +230,30 @@ html.vc-quiet-perf-media-pressure video {
 .vc-quiet-perf-preset-line {
     margin: 4px 0;
 }
+
+html.vc-quiet-perf-bg-l3 .vc-quiet-profiler-panel {
+    opacity: 0.85;
+}
+
+.vc-quiet-perf-history-table {
+    margin-top: 8px;
+    font-size: 11px;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.vc-quiet-perf-history-head,
+.vc-quiet-perf-history-row {
+    display: grid;
+    grid-template-columns: 72px repeat(5, 1fr);
+    gap: 6px;
+    padding: 2px 0;
+}
+
+.vc-quiet-perf-history-head {
+    font-weight: 600;
+    opacity: 0.85;
+    position: sticky;
+    top: 0;
+    background: var(--background-secondary);
+}
