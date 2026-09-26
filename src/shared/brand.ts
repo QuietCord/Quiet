@@ -19,8 +19,23 @@ export const CLOUD_API_URL = "https://api.example.com/";
 /** Donor badge JSON; leave empty until you host badges.json */
 export const BADGES_JSON_URL = "";
 
-export const PLUGIN_DOCS_BASE = "";
+/** Pixel-art cat-in-box logo — see assets/brand/ */
+export const CLIENT_LOGO_SOURCE = "";
+export const CLIENT_FAVICON_SOURCE = "";
+
+/** QuietPresence: Rich Presence asset key in your Discord app (upload logo.png as this key) */
+export const QUIET_RPC_DEFAULT_IMAGE_KEY = "quiet";
+
+/**
+ * Optional Discord Application ID for QuietPresence (register once in the Developer Portal,
+ * upload logo as QUIET_RPC_DEFAULT_IMAGE_KEY). When set, users need not paste an App ID.
+ * Leave empty to use text-only presence (no portal) until you add an ID here.
+ */
+export const QUIET_RPC_APP_ID = "1553407390182019282";
+
+/** Public site for Quiet (optional). Logo artwork originates from Catbox. */
 export const WEBSITE_URL = "";
+export const PLUGIN_DOCS_BASE = "";
 export const CLOUD_PRIVACY_URL = "";
 export const CLOUD_BACKEND_SOURCE_URL = "https://github.com/Vencord/Backend";
 

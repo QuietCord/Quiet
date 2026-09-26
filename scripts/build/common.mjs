@@ -265,8 +265,21 @@ export const fileUrlPlugin = {
 
             let content;
             if (!minify) {
-                content = await readFile(path, encoding);
-                if (!noTrim) content = content.trimEnd();
+                if (base64 && /\.(png|jpe?g|gif|webp|ico)$/i.test(path)) {
+                    const mime = path.endsWith(".ico")
+                        ? "image/x-icon"
+                        : path.endsWith(".png")
+                            ? "image/png"
+                            : path.endsWith(".gif")
+                                ? "image/gif"
+                                : path.endsWith(".webp")
+                                    ? "image/webp"
+                                    : "image/jpeg";
+                    content = `data:${mime};base64,${(await readFile(path)).toString("base64")}`;
+                } else {
+                    content = await readFile(path, encoding);
+                    if (!noTrim) content = content.trimEnd();
+                }
             } else {
                 if (path.endsWith(".html")) {
                     content = await minifyHtml(await readFile(path, "utf-8"), {

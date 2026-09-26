@@ -22,6 +22,7 @@ import { Flex } from "@components/Flex";
 import { Heading } from "@components/Heading";
 import { Paragraph } from "@components/Paragraph";
 import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
+import { CLIENT_NAME } from "@shared/brand";
 import { Margins } from "@utils/margins";
 import { Button, Text } from "@webpack/common";
 
@@ -35,9 +36,9 @@ function BackupAndRestoreTab() {
                 </Card>
 
                 <Text variant="text-md/normal" className={Margins.bottom8}>
-                    You can import and export your Vencord settings as a JSON file.
+                    You can import and export your {CLIENT_NAME} settings as a JSON file.
                     This allows you to easily transfer your settings to another device,
-                    or recover your settings after reinstalling Vencord or Discord.
+                    or recover your settings after reinstalling {CLIENT_NAME} or Discord.
                 </Text>
 
                 <Heading tag="h4">Settings Export contains:</Heading>

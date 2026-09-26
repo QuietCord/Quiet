@@ -8,6 +8,7 @@ import { openNotificationLogModal } from "@api/Notifications/notificationLog";
 import { useSettings } from "@api/Settings";
 import { ErrorCard } from "@components/ErrorCard";
 import { Flex } from "@components/Flex";
+import { CLIENT_NAME } from "@shared/brand";
 import { Margins } from "@utils/margins";
 import { identity } from "@utils/misc";
 import { Button, Forms, Modal,openModal, Select, Slider } from "@webpack/common";
@@ -17,7 +18,7 @@ export function NotificationSection() {
         <section className={Margins.top16}>
             <Forms.FormTitle tag="h5">Notifications</Forms.FormTitle>
             <Forms.FormText className={Margins.bottom8}>
-                Settings for Notifications sent by Vencord.
+                Settings for notifications sent by {CLIENT_NAME}.
                 This does NOT include Discord notifications (messages, etc)
             </Forms.FormText>
             <Flex>
@@ -59,7 +60,7 @@ function NotificationSettings() {
             <Forms.FormText className={Margins.bottom8}>
                 Some plugins may show you notifications. These come in two styles:
                 <ul>
-                    <li><strong>Vencord Notifications</strong>: These are in-app notifications</li>
+                    <li><strong>{CLIENT_NAME} notifications</strong>: These are in-app notifications</li>
                     <li><strong>Desktop Notifications</strong>: Native Desktop notifications (like when you get a ping)</li>
                 </ul>
             </Forms.FormText>
@@ -68,7 +69,7 @@ function NotificationSettings() {
                 options={[
                     { label: "Only use Desktop notifications when Discord is not focused", value: "not-focused", default: true },
                     { label: "Always use Desktop notifications", value: "always" },
-                    { label: "Always use Vencord notifications", value: "never" },
+                    { label: `Always use ${CLIENT_NAME} notifications`, value: "never" },
                 ] satisfies Array<{ value: typeof settings["useNative"]; } & Record<string, any>>}
                 closeOnSelect={true}
                 select={v => settings.useNative = v}

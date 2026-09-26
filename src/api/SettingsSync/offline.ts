@@ -5,6 +5,7 @@
  */
 
 import { PlainSettings } from "@api/Settings";
+import { CLIENT_NAME } from "@shared/brand";
 import { Logger } from "@utils/Logger";
 import { chooseFile, saveFile } from "@utils/web";
 import { moment, Toasts } from "@webpack/common";
@@ -55,7 +56,7 @@ export async function importSettings(data: string) {
         await VencordNative.settings.set(parsed.settings);
         await VencordNative.quickCss.set(parsed.quickCss);
     } else
-        throw new Error("Invalid Settings. Is this even a Vencord Settings file?");
+        throw new Error(`Invalid Settings. Is this even a ${CLIENT_NAME} settings file?`);
 }
 
 export async function exportSettings({ minify }: { minify?: boolean; } = {}) {
@@ -65,7 +66,7 @@ export async function exportSettings({ minify }: { minify?: boolean; } = {}) {
 }
 
 export async function downloadSettingsBackup() {
-    const filename = `vencord-settings-backup-${moment().format("YYYY-MM-DD")}.json`;
+    const filename = `${CLIENT_NAME.toLowerCase()}-settings-backup-${moment().format("YYYY-MM-DD")}.json`;
     const backup = await exportSettings();
     const data = new TextEncoder().encode(backup);
 
@@ -80,7 +81,7 @@ export async function uploadSettingsBackup(showToast = true): Promise<void> {
     if (IS_DISCORD_DESKTOP) {
         const [file] = await DiscordNative.fileManager.openFiles({
             filters: [
-                { name: "Vencord Settings Backup", extensions: ["json"] },
+                { name: `${CLIENT_NAME} Settings Backup`, extensions: ["json"] },
                 { name: "all", extensions: ["*"] }
             ]
         });

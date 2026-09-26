@@ -17,6 +17,7 @@
 */
 
 import { openNotificationLogModal } from "@api/Notifications/notificationLog";
+import { isPluginEnabled } from "@api/PluginManager";
 import { useSettings } from "@api/Settings";
 import { Divider } from "@components/Divider";
 import { FormSwitch } from "@components/FormSwitch";
@@ -26,13 +27,16 @@ import { SpecialCard } from "@components/settings/SpecialCard";
 import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
 import { openContributorModal } from "@components/settings/tabs/plugins/ContributorModal";
 import { openPluginModal } from "@components/settings/tabs/plugins/PluginModal";
+import { settings as quietIdentitySettings } from "@plugins/quietIdentity/settings";
+import QuietPresencePlugin from "@plugins/quietPresence";
 import SettingsPlugin from "@plugins/_core/settings";
+import { CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
 import { gitRemote } from "@shared/vencordUserAgent";
 import { IS_WINDOWS } from "@utils/constants";
 import { Margins } from "@utils/margins";
 import { isPluginDev } from "@utils/misc";
 import { relaunch } from "@utils/native";
-import { ConfirmModal, Forms, openModal, React, useMemo, UserStore } from "@webpack/common";
+import { ConfirmModal, Forms, openModal, React, TextInput, useMemo, UserStore } from "@webpack/common";
 
 import { DonateButtonComponent, isDonor } from "./DonateButton";
 import { MacOSVibrancySettings } from "./MacVibrancySettings";
@@ -134,6 +138,61 @@ function Switches() {
     });
 }
 
+function QuietIdentitySection() {
+    const identity = quietIdentitySettings.use(["showFooter", "showLogo", "footerText"]);
+
+    return (
+        <section className={Margins.top16}>
+            <Forms.FormTitle tag="h5">Quiet Identity</Forms.FormTitle>
+            <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-muted)" }}>
+                Only you see this footer under your messages — it is not sent to Discord.
+            </Forms.FormText>
+            <FormSwitch
+                title="Show identity footer"
+                description="Small label with the cat icon under your messages"
+                value={identity.showFooter}
+                hideBorder
+                onChange={v => { quietIdentitySettings.store.showFooter = v; }}
+            />
+            <FormSwitch
+                title="Show cat icon"
+                value={identity.showLogo}
+                hideBorder
+                disabled={!identity.showFooter}
+                onChange={v => { quietIdentitySettings.store.showLogo = v; }}
+            />
+            <Forms.FormTitle tag="h5" className={Margins.top8}>Footer text</Forms.FormTitle>
+            <TextInput
+                value={identity.footerText}
+                placeholder={`via ${CLIENT_NAME}`}
+                disabled={!identity.showFooter}
+                onChange={v => { quietIdentitySettings.store.footerText = v; }}
+            />
+        </section>
+    );
+}
+
+function QuietPresenceSection() {
+    const customRpcOn = isPluginEnabled("CustomRPC");
+
+    return (
+        <section className={Margins.top16}>
+            <Forms.FormTitle tag="h5">Quiet Presence</Forms.FormTitle>
+            <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-muted)" }}>
+                Rich Presence visible to everyone (same mechanism as Vencord CustomRPC). Only one custom activity plugin should be active.
+            </Forms.FormText>
+            {customRpcOn && (
+                <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-warning)" }}>
+                    CustomRPC is enabled — disable it in Plugins if Quiet Presence does not update.
+                </Forms.FormText>
+            )}
+            <Forms.FormText>
+                <a onClick={() => openPluginModal(QuietPresencePlugin)}>Open Quiet Presence settings</a>
+            </Forms.FormText>
+        </section>
+    );
+}
+
 function VencordSettings() {
     const donateImage = useMemo(() =>
         Math.random() > 0.5 ? DEFAULT_DONATE_IMAGE : SHIGGY_DONATE_IMAGE,
@@ -160,7 +219,7 @@ function VencordSettings() {
                 : (
                     <SpecialCard
                         title="Support the Project"
-                        description="Please consider supporting the development of Vencord by donating!"
+                        description={`${CLIENT_NAME} is a fork of ${UPSTREAM_NAME}. Upstream donations support the base project, not this fork.`}
                         cardImage={donateImage}
                         backgroundImage={DONOR_BACKGROUND_IMAGE}
                         backgroundColor="#c3a3ce"
@@ -174,7 +233,7 @@ function VencordSettings() {
                 <SpecialCard
                     title="Contributions"
                     subtitle="Thank you for contributing!"
-                    description="Since you've contributed to Vencord you now have a cool new badge!"
+                    description={`Thank you for contributing to ${UPSTREAM_NAME} / ${CLIENT_NAME}!`}
                     cardImage={COZY_CONTRIB_IMAGE}
                     backgroundImage={CONTRIB_BACKGROUND_IMAGE}
                     backgroundColor="#EDCC87"
@@ -221,6 +280,14 @@ function VencordSettings() {
 
             <Divider />
 
+            <QuietIdentitySection />
+
+            <Divider />
+
+            <QuietPresenceSection />
+
+            <Divider />
+
             <section className={Margins.top16}>
                 <Forms.FormTitle tag="h5">Settings</Forms.FormTitle>
                 <Forms.FormText className={Margins.bottom20} style={{ color: "var(--text-muted)" }}>
@@ -244,4 +311,4 @@ function VencordSettings() {
     );
 }
 
-export default wrapTab(VencordSettings, "Vencord Settings");
+export default wrapTab(VencordSettings, `${CLIENT_NAME} Settings`);

@@ -4,9 +4,9 @@ Quiet es un fork personal basado en [Vencord](https://github.com/Vendicated/Venc
 
 ## Branding
 
-Edita un solo archivo para la identidad y servicios:
+Edita `src/shared/brand.ts` — nombre, repo, API, etc.
 
-- `src/shared/brand.ts` — nombre visible (`CLIENT_NAME`), URL de tu API (`CLOUD_API_URL`), badges, docs.
+**Logo:** pixel-art gato en caja en `assets/brand/logo.png` y `favicon.ico`. Se embebe en el bundle vía `src/shared/brandAssets.ts` y aparece en Ajustes → Quiet y en el botón del toolbox.
 
 La UI de Ajustes de Discord lee `CLIENT_NAME`; no renombres carpetas `vencord_*` en el layout de settings salvo que quieras pelear con cada merge de upstream.
 
@@ -42,7 +42,51 @@ Si `BADGES_JSON_URL` está vacío, no se cargan badges externos de Vencord. Sirv
 
 ## Build e inject
 
-Igual que Vencord: `pnpm install`, `pnpm build`, `pnpm inject`. El instalador oficial de Vencord apunta a otro repo; para Quiet usa build local o publica releases en `hyusband/Quiet`.
+Igual que Vencord: `pnpm install`, `pnpm build`.
+
+**Discord PTB (recomendado para Quiet):** solo `%LOCALAPPDATA%\\DiscordPTB` y `DiscordPTB.exe`. No uses scripts que maten `Discord.exe` ni parches en `%LOCALAPPDATA%\\Discord`.
+
+```bash
+pnpm build
+pnpm inject:ptb
+```
+
+Eso copia `dist/` dentro de `DiscordPTB/.../resources/_vencord/` (sin depender de `%AppData%\\Vencord` ni rutas externas que Discord a veces ignora).
+
+Luego **cierra solo Discord PTB** (`DiscordPTB.exe`, bandeja incluida). **No cierres Discord stable** (`Discord.exe`); Quiet no lo toca.
+
+Opcional: `QUIET_QUIT_PTB=1 pnpm inject:ptb` cierra **solo** `DiscordPTB.exe` antes de parchear.
+
+`pnpm inject` / `pnpm uninject` pasan `--branch ptb` al instalador oficial. Preferir `inject:ptb` (embed local en `_vencord`).
+
+Si Discord PTB **no arranca** tras `inject:ptb`: `pnpm restore:ptb` (vuelve al Discord vanilla).
+
+### Desarrollo sin reiniciar PTB a cada cambio
+
+`inject:ptb` reparcha `app.asar` y, si usas `QUIET_QUIT_PTB=1`, mata el cliente. Eso **no debería cerrar sesión** (el token queda en disco), pero te saca de llamadas y reinicia todo.
+
+Flujo recomendado:
+
+1. **Una vez:** `pnpm inject:ptb` (PTB cerrado desde la bandeja; **no** hace falta `QUIET_QUIT_PTB=1` si ya lo cerraste tú).
+2. **Día a día:** terminal con `pnpm watch`; tras cada build, `pnpm sync:ptb` (solo copia `dist/` → `_vencord`, **sin** matar Discord).
+3. En PTB: **Ctrl+R** para recargar el renderer con el bundle nuevo.
+
+Vuelve a `inject:ptb` solo si cambias preload/main (`patcher.js` en el stub) o reinstalas PTB. Para plugins y UI, `sync:ptb` + Ctrl+R alcanza.
+
+Si ves pantalla de **login** de verdad (no solo cierre del app), suele ser otra causa (cuenta, caché corrupto, otro cliente); prueba no usar `taskkill /F` en bucle y evita `restore:ptb` salvo emergencia.
+
+## Quiet Presence (Rich Presence público)
+
+Plugin **QuietPresence** — escribe la actividad con el mismo mecanismo interno que Discord (`LOCAL_ACTIVITY_UPDATE`; no hay una API “más directa” solo por estar inyectados). Los servidores de Discord siguen validando `application_id` e imágenes.
+
+**Modo sin portal (por defecto):** deja Application ID vacío → actividad de texto (“Playing Quiet”, detalles, botón). Sin logo en la tarjeta.
+
+**Modo con logo (una vez por el fork):** pon `QUIET_RPC_APP_ID` en `brand.ts` tras crear la app y subir `logo.png` como clave `quiet`, **o** pega tu App ID en ajustes.
+
+1. Activa **QuietPresence** y **Compartir mi actividad** en Discord.
+2. Desactiva **CustomRPC** si los dos están a la vez.
+
+Solo el cliente donde inyectaste Quiet (p. ej. PTB) publica esa actividad. Si también tienes stable abierto, el puerto RPC local puede pelearse — usa un solo cliente para la presencia que quieres mostrar.
 
 ## Licencia
 

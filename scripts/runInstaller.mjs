@@ -18,12 +18,13 @@
 
 import "./checkNodeVersion.js";
 
-import { execFileSync, execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync } from "fs";
 import { dirname, join } from "path";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { fileURLToPath } from "url";
+import { ensureQuietPtbInstallerArgs, logPtbOnlyScope } from "./discordPtb.mjs";
 
 const BASE_URL = "https://github.com/Vencord/Installer/releases/latest/download/";
 
@@ -90,16 +91,27 @@ const installerBin = await ensureBinary();
 console.log("Now running Installer...");
 
 const argStart = process.argv.indexOf("--");
-const args = argStart === -1 ? [] : process.argv.slice(argStart + 1);
+const rawArgs = argStart === -1 ? [] : process.argv.slice(argStart + 1);
+const args = ensureQuietPtbInstallerArgs(rawArgs);
+
+logPtbOnlyScope();
+
+const isDevInstall = process.env.QUIET_DEV_INSTALL === "1";
+
+const installerEnv = { ...process.env };
+if (isDevInstall) {
+    installerEnv.VENCORD_USER_DATA_DIR = BASE_DIR;
+    installerEnv.VENCORD_DEV_INSTALL = "1";
+} else {
+    delete installerEnv.VENCORD_USER_DATA_DIR;
+    delete installerEnv.VENCORD_DEV_INSTALL;
+}
 
 try {
     execFileSync(installerBin, args, {
         stdio: "inherit",
-        env: {
-            ...process.env,
-            VENCORD_USER_DATA_DIR: BASE_DIR,
-            VENCORD_DEV_INSTALL: "1"
-        }
+        cwd: BASE_DIR,
+        env: installerEnv
     });
 } catch {
     console.error("Something went wrong. Please check the logs above.");

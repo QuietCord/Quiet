@@ -13,7 +13,11 @@ description: >-
 
 ## Fork config
 
+## Branding
+
 Edit `src/shared/brand.ts` (API URL, badges, docs). Read [FORK.md](../../../FORK.md) for merge workflow and backend setup.
+
+**Logo:** Pixel-art cat-in-box in `assets/brand/`, inlined at build time. Used in Discord settings sidebar and the titlebar toolbox (`BrandLogoIcon`).
 
 ## Stack and tooling
 
@@ -28,7 +32,8 @@ Edit `src/shared/brand.ts` (API URL, badges, docs). Read [FORK.md](../../../FORK
 | `pnpm dev` / `pnpm watch` | Desktop inject build, watch |
 | `pnpm build` | Desktop production build |
 | `pnpm buildWeb` / `pnpm watchWeb` | Browser extension / web |
-| `pnpm inject` / `pnpm uninject` | Install/uninstall into Discord |
+| `pnpm inject:ptb` / `pnpm restore:ptb` / `pnpm verify:ptb` | Embed Quiet in **Discord PTB only** (`DiscordPTB.exe`, `%LOCALAPPDATA%\\DiscordPTB`) |
+| `pnpm inject` / `pnpm uninject` | Official installer, **PTB branch only** (never stable) |
 | `pnpm test` | buildStandalone + tsc + lint + plugin JSON |
 | `pnpm generatePluginJson` | Plugin list for site/docs |
 
