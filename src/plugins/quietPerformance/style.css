@@ -1,0 +1,109 @@
+/*
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+html.vc-quiet-perf-motion,
+html.vc-quiet-perf-motion *,
+html.vc-quiet-perf-motion *::before,
+html.vc-quiet-perf-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+html.vc-quiet-perf-blur,
+html.vc-quiet-perf-blur * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+html.vc-quiet-perf-no-embeds [class*="embed"],
+html.vc-quiet-perf-no-embeds [class*="embedWrapper"],
+html.vc-quiet-perf-no-embeds [class*="gridContainer"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-attachments [class*="attachment"],
+html.vc-quiet-perf-no-attachments [class*="visualMediaItem"],
+html.vc-quiet-perf-no-attachments [class*="mosaic"],
+html.vc-quiet-perf-no-attachments [class*="mediaAttachmentsContainer"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-stickers [class*="sticker"],
+html.vc-quiet-perf-no-stickers [class*="stickerAsset"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-gif img[src*=".gif"],
+html.vc-quiet-perf-no-gif video {
+    animation-play-state: paused !important;
+}
+
+html.vc-quiet-perf-compact [class*="messageContent"] {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+html.vc-quiet-perf-compact [class*="groupStart"] {
+    margin-top: 0.25rem !important;
+}
+
+html.vc-quiet-perf-compact img[class*="emoji"] {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+}
+
+html.vc-quiet-perf-no-memberlist [class*="membersWrap"],
+html.vc-quiet-perf-no-memberlist [class*="memberList"],
+html.vc-quiet-perf-no-memberlist aside[class*="members"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-reactions [class*="reactions"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-chat-avatars [class*="avatar"][class*="wrapper"],
+html.vc-quiet-perf-no-chat-avatars img[class*="avatar"] {
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+}
+
+html.vc-quiet-perf-lazy-messages [class*="messageListItem"],
+html.vc-quiet-perf-lazy-messages li[id^="chat-messages-"] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 48px;
+}
+
+html.vc-quiet-perf-no-decor [class*="avatarDecoration"],
+html.vc-quiet-perf-no-decor [class*="profileEffect"] {
+    display: none !important;
+}
+
+html.vc-quiet-perf-no-effects * {
+    filter: none !important;
+    box-shadow: none !important;
+}
+
+.vc-quiet-perf-usage-pill {
+    position: fixed;
+    top: 36px;
+    left: 72px;
+    z-index: 9999;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-primary);
+    color: var(--text-normal);
+    background: color-mix(in srgb, var(--background-floating) 92%, transparent);
+    border: 1px solid var(--background-modifier-accent);
+    pointer-events: none;
+    opacity: 0.85;
+}

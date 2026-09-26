@@ -112,6 +112,16 @@ export function _getBadges(args: BadgeUserArgs) {
         );
     }
 
+    const quietDonorBadges = BadgeAPIPlugin.getQuietDonorBadges(args.userId);
+    if (quietDonorBadges) {
+        badges.unshift(
+            ...quietDonorBadges.map(badge => ({
+                ...args,
+                ...badge,
+            }))
+        );
+    }
+
     return badges;
 }
 

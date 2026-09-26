@@ -27,9 +27,10 @@ import { SpecialCard } from "@components/settings/SpecialCard";
 import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
 import { openContributorModal } from "@components/settings/tabs/plugins/ContributorModal";
 import { openPluginModal } from "@components/settings/tabs/plugins/PluginModal";
-import { settings as quietIdentitySettings } from "@plugins/quietIdentity/settings";
-import QuietPresencePlugin from "@plugins/quietPresence";
 import SettingsPlugin from "@plugins/_core/settings";
+import { settings as quietIdentitySettings } from "@plugins/quietIdentity/settings";
+import QuietPerformancePlugin from "@plugins/quietPerformance";
+import QuietPresencePlugin from "@plugins/quietPresence";
 import { CLIENT_NAME, FORK_REPO, GITHUB_ORG_URL, UPSTREAM_NAME, WEBSITE_URL } from "@shared/brand";
 import { IS_WINDOWS } from "@utils/constants";
 import { Margins } from "@utils/margins";
@@ -37,7 +38,7 @@ import { isPluginDev } from "@utils/misc";
 import { relaunch } from "@utils/native";
 import { ConfirmModal, Forms, openModal, React, TextInput, useMemo, UserStore } from "@webpack/common";
 
-import { DonateButtonComponent, isDonor } from "./DonateButton";
+import { DonateButtonComponent, isQuietDonor } from "./DonateButton";
 import { MacOSVibrancySettings } from "./MacVibrancySettings";
 import { NotificationSection } from "./NotificationSettings";
 import { WindowsMaterialSettings } from "./WindowsMaterialSettings";
@@ -171,6 +172,21 @@ function QuietIdentitySection() {
     );
 }
 
+function QuietPerformanceSection() {
+    return (
+        <section className={Margins.top16}>
+            <Forms.FormTitle tag="h5">Quiet Performance</Forms.FormTitle>
+            <Forms.FormText className={Margins.bottom8} style={{ color: "var(--text-muted)" }}>
+                Profiles: <strong>Balanced</strong> keeps media; <strong>Minimum</strong> is text-first (no embeds, attachments, member list, reactions).
+                Toggle blur, GIF autoplay, lazy messages, and Chromium process count individually. The RAM pill matches Task Manager working set for all Discord processes.
+            </Forms.FormText>
+            <Forms.FormText>
+                <a onClick={() => openPluginModal(QuietPerformancePlugin)}>Open Quiet Performance settings</a>
+            </Forms.FormText>
+        </section>
+    );
+}
+
 function QuietPresenceSection() {
     const customRpcOn = isPluginEnabled("CustomRPC");
 
@@ -202,15 +218,15 @@ function VencordSettings() {
 
     return (
         <SettingsTab>
-            {isDonor(user?.id)
+            {isQuietDonor(user?.id)
                 ? (
                     <SpecialCard
-                        title="Donations"
-                        subtitle="Thank you for donating!"
-                        description="You can manage your perks at any time by messaging @vending.machine."
+                        title="QuietCord supporters"
+                        subtitle="Thank you for supporting Quiet!"
+                        description={`Your profile shows the ${CLIENT_NAME} supporter badge. Plugin authors get a separate badge — that is not the same as sponsoring the fork.`}
                         cardImage={VENNIE_DONATOR_IMAGE}
-                        backgroundImage={DONOR_BACKGROUND_IMAGE}
-                        backgroundColor="#ED87A9"
+                        backgroundImage={CONTRIB_BACKGROUND_IMAGE}
+                        backgroundColor="#EDCC87"
                     >
                         <DonateButtonComponent />
                     </SpecialCard>
@@ -218,7 +234,7 @@ function VencordSettings() {
                 : (
                     <SpecialCard
                         title="Support the Project"
-                        description={`${CLIENT_NAME} is a fork of ${UPSTREAM_NAME}. Upstream donations support the base project, not this fork.`}
+                        description={`Sponsor ${CLIENT_NAME} on GitHub to get the supporter badge on your profile. Upstream ${UPSTREAM_NAME} donations are a different project.`}
                         cardImage={donateImage}
                         backgroundImage={DONOR_BACKGROUND_IMAGE}
                         backgroundColor="#c3a3ce"
@@ -230,13 +246,13 @@ function VencordSettings() {
 
             {isPluginDev(user?.id) && (
                 <SpecialCard
-                    title="Contributions"
-                    subtitle="Thank you for contributing!"
-                    description={`Thank you for contributing to ${UPSTREAM_NAME} / ${CLIENT_NAME}!`}
+                    title="Plugin author"
+                    subtitle="Thanks for shipping code"
+                    description={`You appear in the ${CLIENT_NAME} contributor list because you authored plugins — not because of financial support.`}
                     cardImage={COZY_CONTRIB_IMAGE}
-                    backgroundImage={CONTRIB_BACKGROUND_IMAGE}
-                    backgroundColor="#EDCC87"
-                    buttonTitle="See what you've contributed to"
+                    backgroundImage={DONOR_BACKGROUND_IMAGE}
+                    backgroundColor="#87AED9"
+                    buttonTitle="See your plugins"
                     buttonOnClick={() => openContributorModal(user)}
                 />
             )}
@@ -292,6 +308,10 @@ function VencordSettings() {
             <Divider />
 
             <QuietIdentitySection />
+
+            <Divider />
+
+            <QuietPerformanceSection />
 
             <Divider />
 

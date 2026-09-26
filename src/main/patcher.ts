@@ -21,6 +21,7 @@ import { onceDefined } from "@shared/onceDefined";
 import electron, { app, BrowserWindowConstructorOptions, Menu } from "electron";
 import { dirname, join } from "path";
 
+import { applyQuietRuntime, applyQuietWindowOptions } from "./quietRuntime";
 import { RendererSettings } from "./settings";
 import { IS_VANILLA } from "./utils/constants";
 
@@ -46,6 +47,8 @@ require.main!.filename = join(asarPath, discordPkg.main);
 app.setAppPath(asarPath);
 
 if (!IS_VANILLA) {
+    applyQuietRuntime();
+
     const settings = RendererSettings.store;
 
     // Repatch after host updates on Windows and Linux
@@ -110,6 +113,8 @@ if (!IS_VANILLA) {
             }
 
             process.env.DISCORD_PRELOAD = original;
+
+            applyQuietWindowOptions(options);
 
             super(options);
 

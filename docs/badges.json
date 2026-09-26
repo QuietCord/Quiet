@@ -1,3 +1,3 @@
 {
-    "_comment": "Member badge uses logo.png. Fork contributors get cat+wrench via Devs (see constants.ts) — list other Discord user IDs here only."
+    "_comment": "Unused by default (BADGES_JSON_URL is empty). QuietCord sponsors go in quiet-donors.json. Code contributors use Devs in constants.ts."
 }

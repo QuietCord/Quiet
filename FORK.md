@@ -38,9 +38,11 @@ Pasos recomendados:
 3. En desktop, la primera conexión puede pedir permiso CSP para tu dominio (`checkCloudUrlCsp` en `cloudSetup.tsx`).
 4. Opcional: añade tu dominio en `src/main/csp/index.ts` si sirves imágenes/CSS desde ahí.
 
-## Badges de donante
+## Badges
 
-Si `BADGES_JSON_URL` está vacío, no se cargan badges externos de Vencord. Sirve el mismo JSON que `badges.vencord.dev/badges.json` en tu servidor y pon la URL en `brand.ts`.
+**QuietCord supporters (money):** add Discord user IDs to [`docs/quiet-donors.json`](docs/quiet-donors.json). They get the cat-in-box supporter badge on profile and the gold card in Quiet Settings. Independent of plugin authors in `Devs` / `constants.ts`.
+
+**Optional upstream mirror:** set `BADGES_JSON_URL` in `brand.ts` to a JSON in the same shape as `badges.vencord.dev/badges.json` for legacy upstream donor icons.
 
 ## Build e inject
 

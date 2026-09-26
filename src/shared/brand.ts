@@ -23,9 +23,15 @@ export const BACKEND_REPO = "QuietCord/Backend";
 /** Cloud sync API base URL (must implement Vencord Backend-compatible routes). */
 export const CLOUD_API_URL = "https://backend-285bb.containers.snapdeploy.app/";
 
-/** Donor badge JSON; hosted in this repo (raw GitHub URL). */
-export const BADGES_JSON_URL =
-    "https://raw.githubusercontent.com/QuietCord/Quiet/main/docs/badges.json";
+/** Optional upstream-style donor JSON (legacy / mirror). Leave empty string to disable. */
+export const BADGES_JSON_URL = "";
+
+/** QuietCord sponsors — Discord user IDs → profile badges (see docs/quiet-donors.json). */
+export const QUIET_DONORS_JSON_URL =
+    "https://raw.githubusercontent.com/QuietCord/Quiet/main/docs/quiet-donors.json";
+
+/** Where to send people who want to sponsor the fork. */
+export const QUIET_SPONSORS_URL = `${GITHUB_ORG_URL}/sponsors`;
 
 /** Profile badge icon for QuietCord contributors (cat-in-box). */
 export const QUIET_CONTRIBUTOR_BADGE_URL =

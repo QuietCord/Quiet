@@ -28,8 +28,14 @@ import { Heart } from "@components/Heart";
 import { CopyIcon, LinkIcon } from "@components/Icons";
 import DonateButton from "@components/settings/DonateButton";
 import { openContributorModal } from "@components/settings/tabs";
-import { BADGES_JSON_URL, CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
-import { contributorBadgeDataUrl } from "@shared/brandAssets";
+import { BADGES_JSON_URL, CLIENT_NAME, QUIET_DONORS_JSON_URL, QUIET_SPONSORS_URL, UPSTREAM_NAME } from "@shared/brand";
+import { contributorBadgeDataUrl, logoDataUrl } from "@shared/brandAssets";
+import {
+    DEFAULT_QUIET_DONOR_TOOLTIP,
+    parseQuietDonorsJson,
+    QUIET_DONOR_BADGE_ID_PREFIX,
+    QuietDonorsJson
+} from "@shared/quietDonors";
 import { Devs } from "@utils/constants";
 import { copyWithToast } from "@utils/discord";
 import { Logger } from "@utils/Logger";
@@ -42,7 +48,7 @@ const CONTRIBUTOR_BADGE = contributorBadgeDataUrl;
 
 const ContributorBadge: ProfileBadge = {
     id: "quiet_contributor_badge",
-    description: `${CLIENT_NAME} Contributor`,
+    description: `${CLIENT_NAME} plugin author`,
     iconSrc: CONTRIBUTOR_BADGE,
     position: BadgePosition.START,
     shouldShow: ({ userId }) => shouldShowContributorBadge(userId),
@@ -57,10 +63,26 @@ const ContributorBadge: ProfileBadge = {
 };
 
 let DonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
+let QuietDonorBadges: QuietDonorsJson = {};
 
 async function loadBadges(noCache = false) {
     if (!BADGES_JSON_URL) {
         DonorBadges = {};
+    } else {
+        const init = {} as RequestInit;
+        if (noCache)
+            init.cache = "no-cache";
+
+        DonorBadges = await fetch(BADGES_JSON_URL, init)
+            .then(r => r.json());
+    }
+
+    await loadQuietDonors(noCache);
+}
+
+async function loadQuietDonors(noCache = false) {
+    if (!QUIET_DONORS_JSON_URL) {
+        QuietDonorBadges = {};
         return;
     }
 
@@ -68,8 +90,13 @@ async function loadBadges(noCache = false) {
     if (noCache)
         init.cache = "no-cache";
 
-    DonorBadges = await fetch(BADGES_JSON_URL, init)
-        .then(r => r.json());
+    try {
+        const raw = await fetch(QUIET_DONORS_JSON_URL, init).then(r => r.json());
+        QuietDonorBadges = parseQuietDonorsJson(raw);
+    } catch (e) {
+        new Logger("BadgeAPI#loadQuietDonors").error(e);
+        QuietDonorBadges = {};
+    }
 }
 
 let intervalId: any;
@@ -143,6 +170,10 @@ export default definePlugin({
     // for access from the console or other plugins
     get DonorBadges() {
         return DonorBadges;
+    },
+
+    get QuietDonorBadges() {
+        return QuietDonorBadges;
     },
 
     toolboxActions: {
@@ -262,6 +293,73 @@ export default definePlugin({
                                     </Forms.FormText>
                                     <Forms.FormText className={Margins.top20}>
                                         Please consider supporting the development of {UPSTREAM_NAME} by becoming a donor on GitHub Sponsors.
+                                    </Forms.FormText>
+                                </div>
+                            </div>
+                            <div>
+                                <Flex justifyContent="center" style={{ width: "100%" }}>
+                                    <DonateButton />
+                                </Flex>
+                            </div>
+                        </Modal>
+                    </ErrorBoundary>
+                ));
+            },
+        } satisfies ProfileBadge));
+    },
+
+    getQuietDonorBadges(userId: string) {
+        return QuietDonorBadges[userId]?.map((entry, idx) => ({
+            id: `${QUIET_DONOR_BADGE_ID_PREFIX}_${idx}`,
+            iconSrc: entry.badge || logoDataUrl,
+            description: entry.tooltip || DEFAULT_QUIET_DONOR_TOOLTIP,
+            position: BadgePosition.START,
+            props: {
+                className: "vc-quiet-donor-badge",
+                style: {
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    transform: "scale(0.92)",
+                },
+            },
+            onContextMenu(event, badge) {
+                ContextMenuApi.openContextMenu(event, () => <BadgeContextMenu badge={badge} />);
+            },
+            onClick() {
+                openModal(props => (
+                    <ErrorBoundary noop onError={() => {
+                        props.onClose();
+                        VencordNative.native.openExternal(QUIET_SPONSORS_URL);
+                    }}>
+                        <Modal
+                            {...props}
+                            title={
+                                <Forms.FormTitle
+                                    tag="h2"
+                                    style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                        margin: 0
+                                    }}
+                                >
+                                    <Flex justifyContent="center" alignItems="center" gap="0.5em">
+                                        <Heart />
+                                        {CLIENT_NAME} Supporter
+                                    </Flex>
+                                </Forms.FormTitle>
+                            }
+                        >
+                            <div>
+                                <img
+                                    role="presentation"
+                                    src={logoDataUrl}
+                                    alt=""
+                                    style={{ display: "block", width: 96, height: 96, margin: "1em auto", borderRadius: "50%" }}
+                                />
+                                <div style={{ padding: "0 1em 1em" }}>
+                                    <Forms.FormText>
+                                        This badge is for people who financially support {CLIENT_NAME} (QuietCord).
+                                        It is separate from the plugin-author badge and from {UPSTREAM_NAME} upstream donations.
                                     </Forms.FormText>
                                 </div>
                             </div>
