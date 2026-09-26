@@ -9,7 +9,7 @@ Org: **https://github.com/QuietCord**
 | [QuietCord/Quiet](https://github.com/QuietCord/Quiet) | `C:\Projects\Quiet` | `Vendicated/Vencord` |
 | [QuietCord/Backend](https://github.com/QuietCord/Backend) | `C:\Projects\QuietCord-Backend` | `Vencord/Backend` |
 
-The org currently has **no public repos** until you push (see below).
+The org currently has **Quiet** and **Backend** on GitHub under QuietCord.
 
 The client repo is **QuietCord/Quiet** (transfer from a personal fork is done when `origin` points here).
 
@@ -34,10 +34,13 @@ Or manually:
 
 ## After Backend is live
 
-1. Copy `.env.example` → `.env` in `QuietCord-Backend`, fill Discord OAuth + peppers.
-2. `docker compose up -d` (see upstream README).
-3. Set `CLOUD_API_URL` in `src/shared/brand.ts` to your HTTPS API base.
-4. Rebuild client: `bun x pnpm@11.9.0 build` → `sync:ptb`.
+**Production (Fly.io):** follow [QuietCord/Backend → docs/DEPLOY-FLY.md](https://github.com/QuietCord/Backend/blob/main/docs/DEPLOY-FLY.md) (`fly redis create`, secrets, `fly deploy`).
+
+**Local only:** copy `.env.example` → `.env`, `docker compose up -d`.
+
+Then set `CLOUD_API_URL` in `src/shared/brand.ts` to your HTTPS API base (e.g. `https://quietcord-api.fly.dev/`).
+
+Rebuild client: `bun x pnpm@11.9.0 build` → `sync:ptb`.
 
 ## Brand constants
 
