@@ -21,7 +21,7 @@ export const GITHUB_ORG_URL = "https://github.com/QuietCord";
 export const BACKEND_REPO = "QuietCord/Backend";
 
 /** Cloud sync API base URL (must implement Vencord Backend-compatible routes). */
-export const CLOUD_API_URL = "https://quietcord-api.onrender.com/";
+export const CLOUD_API_URL = "https://backend-285bb.containers.snapdeploy.app/";
 
 /** Donor badge JSON; leave empty until you host badges.json */
 export const BADGES_JSON_URL = "";
