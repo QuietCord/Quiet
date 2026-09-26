@@ -1,0 +1,67 @@
+/*
+ * Quiet — personal fork of Vencord
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+.vc-quiet-trans-block {
+    margin-top: 0.35rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--brand-experiment);
+    background: color-mix(in srgb, var(--background-secondary) 88%, transparent);
+    max-width: 100%;
+}
+
+.vc-quiet-trans-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.vc-quiet-trans-text {
+    color: var(--text-normal);
+    font-size: 0.9375rem;
+    line-height: 1.35rem;
+    white-space: break-spaces;
+}
+
+.vc-quiet-trans-meta {
+    margin-top: 0.35rem;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.vc-quiet-trans-dismiss {
+    all: unset;
+    cursor: pointer;
+    color: var(--text-link);
+}
+
+.vc-quiet-trans-dismiss:hover {
+    text-decoration: underline;
+}
+
+.vc-quiet-trans-chat-btn-on {
+    color: var(--brand-experiment);
+}
+
+.vc-quiet-trans-select {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    background: var(--input-background);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-accent);
+}
+
+.vc-quiet-trans-muted {
+    color: var(--text-muted);
+}
