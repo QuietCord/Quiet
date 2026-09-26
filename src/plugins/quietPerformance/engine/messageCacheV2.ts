@@ -8,12 +8,13 @@ import { SelectedChannelStore } from "@webpack/common";
 
 import { isAbandonedChannel, isRecentChannel } from "./adaptiveBackground";
 import { getMemoryPressureLevel } from "./memoryPressureState";
+import { isQuietPerformanceActive } from "../active";
 import { settings } from "../settings";
 
 type Bucket = { channelId?: string; };
 
 export function resolveMessageCacheCap(fallbackLimit: number, bucket?: Bucket | null) {
-    if (!settings.store.trimMessageCache) return fallbackLimit;
+    if (!isQuietPerformanceActive() || !settings.store.trimMessageCache) return fallbackLimit;
 
     const channelId = bucket?.channelId ?? SelectedChannelStore.getChannelId();
     let cap: number;

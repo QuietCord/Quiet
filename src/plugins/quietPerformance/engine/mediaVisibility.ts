@@ -117,6 +117,16 @@ export function startMediaVisibilityEngine() {
 }
 
 export function stopMediaVisibilityEngine() {
+    document.querySelectorAll("img[data-vc-quiet-src], video[data-vc-quiet-src]").forEach(el => {
+        if (el instanceof HTMLImageElement || el instanceof HTMLVideoElement) {
+            if (el.dataset.vcQuietSrc) el.src = el.dataset.vcQuietSrc;
+            delete el.dataset.vcQuietUnloaded;
+            delete el.dataset.vcQuietSrc;
+            delete el.dataset.vcQuietPaused;
+            el.style.contentVisibility = "";
+        }
+    });
+
     started = false;
     observer?.disconnect();
     observer = null;

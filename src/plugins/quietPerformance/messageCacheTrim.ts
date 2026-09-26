@@ -7,6 +7,7 @@
 import { MessageCache, SelectedChannelStore } from "@webpack/common";
 
 import { resolveMessageCacheCap } from "./engine/messageCacheV2";
+import { isQuietPerformanceActive } from "./active";
 import { settings } from "./settings";
 
 type ChannelBucket = {
@@ -58,7 +59,7 @@ function* channelEntries(map: unknown): Generator<[string, ChannelBucket]> {
  * Prefer Discord's truncateTop; bulk-splice only if internals are present.
  */
 export function trimInactiveMessageCaches() {
-    if (!settings.store.trimMessageCache) return 0;
+    if (!isQuietPerformanceActive() || !settings.store.trimMessageCache) return 0;
 
     const active = SelectedChannelStore.getChannelId();
     const map = channelMap();

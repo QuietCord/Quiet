@@ -1,0 +1,104 @@
+/*
+ * Quiet — Focus Mode (UX only, not QuietPerformance)
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/* Member list */
+html.vc-focus-mode.vc-focus-hide-members [class*="membersWrap"],
+html.vc-focus-mode.vc-focus-hide-members [class*="memberList"],
+html.vc-focus-mode.vc-focus-hide-members aside[class*="members"] {
+    display: none !important;
+}
+
+/* Activities / Now Playing panel */
+html.vc-focus-mode.vc-focus-hide-activities [class*="activityPanel"],
+html.vc-focus-mode.vc-focus-hide-activities [class*="nowPlaying"],
+html.vc-focus-mode.vc-focus-hide-activities [class*="panelBody"] [class*="activity"] {
+    display: none !important;
+}
+
+/* Nitro / shop / upsell */
+html.vc-focus-mode.vc-focus-hide-promos [class*="premiumPromo"],
+html.vc-focus-mode.vc-focus-hide-promos [class*="upsell"],
+html.vc-focus-mode.vc-focus-hide-promos [class*="collectibles"],
+html.vc-focus-mode.vc-focus-hide-promos [class*="shop"],
+html.vc-focus-mode.vc-focus-hide-promos [class*="giftIcon"],
+html.vc-focus-mode.vc-focus-hide-promos [class*="applicationStore"],
+html.vc-focus-mode.vc-focus-hide-promos [aria-label*="Nitro"],
+html.vc-focus-mode.vc-focus-hide-promos [aria-label*="Shop"] {
+    display: none !important;
+}
+
+/* Decorations */
+html.vc-focus-mode.vc-focus-hide-decor [class*="avatarDecoration"],
+html.vc-focus-mode.vc-focus-hide-decor [class*="profileEffect"],
+html.vc-focus-mode.vc-focus-hide-decor [class*="nameplate"],
+html.vc-focus-mode.vc-focus-hide-decor [class*="avatarDecorationPreview"] {
+    display: none !important;
+}
+
+/* Discover / quests / recs */
+html.vc-focus-mode.vc-focus-hide-discover [class*="discovery"],
+html.vc-focus-mode.vc-focus-hide-discover [class*="quests"],
+html.vc-focus-mode.vc-focus-hide-discover [class*="recs"],
+html.vc-focus-mode.vc-focus-hide-discover [class*="recommended"],
+html.vc-focus-mode.vc-focus-hide-discover [href="/discovery"],
+html.vc-focus-mode.vc-focus-hide-discover [href="/store"] {
+    display: none !important;
+}
+
+/* Banners — headers only (avoid matching attachment class names) */
+html.vc-focus-mode.vc-focus-hide-banners [class*="header"][class*="banner"],
+html.vc-focus-mode.vc-focus-hide-banners [class*="profileBanner"],
+html.vc-focus-mode.vc-focus-hide-banners [class*="guildHeader"] [class*="banner"] {
+    display: none !important;
+}
+
+/* Muted channels in sidebar */
+html.vc-focus-mode.vc-focus-hide-muted [class*="channel"][class*="muted"],
+html.vc-focus-mode.vc-focus-hide-muted [data-muted="true"],
+html.vc-focus-mode.vc-focus-hide-muted [aria-label*="Muted channel"] {
+    display: none !important;
+}
+
+/* DMs + mentions: de-emphasize guild list (keep Home / DMs) */
+html.vc-focus-mode.vc-focus-dms-mentions nav[class*="guilds"] [class*="listItem"]:not(:first-child) {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+html.vc-focus-mode.vc-focus-dms-mentions nav[class*="guilds"] [class*="listItem"]:first-child {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.vc-focus-mode-button {
+    width: 48px;
+    height: 48px;
+    margin: 0 0 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--background-secondary);
+    color: var(--interactive-normal);
+    border: 2px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.vc-focus-mode-button:hover {
+    color: var(--interactive-hover);
+    background: var(--background-modifier-hover);
+}
+
+.vc-focus-mode-button[data-active="true"] {
+    color: var(--white);
+    background: var(--brand-experiment);
+    border-color: var(--brand-experiment-560);
+}
+
+.vc-focus-mode-button svg {
+    width: 22px;
+    height: 22px;
+}

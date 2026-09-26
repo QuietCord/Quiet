@@ -6,7 +6,7 @@
 import { Activity } from "@vencord/discord-types";
 import { ActivityType } from "@vencord/discord-types/enums";
 import { CLIENT_NAME } from "@shared/brand";
-import { AuthenticationStore, FluxDispatcher, PresenceStore } from "@webpack/common";
+import { AuthenticationStore, PresenceStore } from "@webpack/common";
 
 import { settings } from "./settings";
 
@@ -60,7 +60,8 @@ export function getDevOverlayLine() {
 export function tickDevOverlay() {
     const lines = getEffectiveLines();
     devIndex = (devIndex + 1) % lines.length;
-    FluxDispatcher.dispatch({ type: "PRESENCE_UPDATES" });
+    // Do not dispatch bare PRESENCE_UPDATES — UserStore expects payloads and throws on .map.
+    PresenceStore.emitChange();
 }
 
 export function resetDevOverlay() {

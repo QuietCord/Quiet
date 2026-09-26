@@ -7,6 +7,7 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 
+import { isQuietPerformanceActive } from "./active";
 import { presetNeedsConfirmation } from "./presetRisk";
 import { PerformanceAutoPanel } from "./PerformanceAutoPanel";
 import { PerformanceDeepPanel } from "./PerformanceDeepPanel";
@@ -461,7 +462,19 @@ export const settings = definePluginSettings({
 
 export type QuietPerformanceSettings = typeof settings.store;
 
+export function clearAllPerformanceClasses() {
+    document.documentElement.className = document.documentElement.className
+        .split(/\s+/)
+        .filter(c => !c.startsWith("vc-quiet-perf-"))
+        .join(" ");
+    delete document.documentElement.dataset.vcQuietBgLevel;
+}
+
 export function applyPerformanceClasses() {
+    if (!isQuietPerformanceActive()) {
+        clearAllPerformanceClasses();
+        return;
+    }
     const s = settings.store;
     setRootClass(CLASS.motion, s.freezeMotion);
     setRootClass(CLASS.blur, s.disableBlur);
@@ -479,6 +492,7 @@ export function applyPerformanceClasses() {
 }
 
 export function shouldStripRender(renderCall: string, message: { id?: string; } | null | undefined) {
+    if (!isQuietPerformanceActive()) return false;
     if (!message?.id) return false;
     if (renderCall.includes("renderAttachments") && settings.store.stripAttachments) return true;
     if (renderCall.includes("renderEmbeds") && settings.store.stripEmbeds) return true;

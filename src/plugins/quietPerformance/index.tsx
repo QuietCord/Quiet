@@ -36,6 +36,7 @@ import { logPatchHealth } from "./patchHealthReport";
 import { startProfiler, stopProfiler, getProfilerSnapshot } from "./profiler/collector";
 import {
     applyPerformanceClasses,
+    clearAllPerformanceClasses,
     settings,
     shouldStripRender,
 } from "./settings";
@@ -44,6 +45,10 @@ import { UsageOverlay } from "./UsageOverlay";
 import { ChannelStore, SelectedGuildStore } from "@webpack/common";
 
 const logger = new Logger("QuietPerformance");
+
+function perfPatchesActive() {
+    return isPluginEnabled("QuietPerformance");
+}
 
 export { settings } from "./settings";
 
@@ -87,7 +92,7 @@ export default definePlugin({
             find: "canAnimate:",
             all: true,
             noWarn: true,
-            predicate: () => settings.store.freezeMotion,
+            predicate: () => perfPatchesActive() && settings.store.freezeMotion,
             replacement: {
                 match: /canAnimate:.+?([,}].*?\))/g,
                 replace: (match, rest) => {
@@ -99,7 +104,7 @@ export default definePlugin({
         {
             patchId: "perf-freeze-emoji",
             find: "#{intl::GUILD_OWNER}),children:",
-            predicate: () => settings.store.freezeMotion,
+            predicate: () => perfPatchesActive() && settings.store.freezeMotion,
             replacement: {
                 match: /(\.CUSTOM_STATUS.+?animateEmoji:)\i/,
                 replace: "$1!1",
@@ -108,7 +113,7 @@ export default definePlugin({
         {
             patchId: "perf-freeze-banner",
             find: "#{intl::DISCOVERABLE_GUILD_HEADER_PUBLIC_INFO}",
-            predicate: () => settings.store.freezeMotion,
+            predicate: () => perfPatchesActive() && settings.store.freezeMotion,
             replacement: {
                 match: /(guildBanner:\i,animate:)\i(?=}\):null)/,
                 replace: "$1!1",
@@ -117,7 +122,7 @@ export default definePlugin({
         {
             patchId: "perf-freeze-gradient",
             find: "=!1,contentOnly:",
-            predicate: () => settings.store.freezeMotion,
+            predicate: () => perfPatchesActive() && settings.store.freezeMotion,
             replacement: {
                 match: /animate:\i/,
                 replace: "animate:!1",
@@ -126,7 +131,7 @@ export default definePlugin({
         {
             patchId: "perf-freeze-nameplate",
             find: ".MINI_PREVIEW,[",
-            predicate: () => settings.store.freezeMotion,
+            predicate: () => perfPatchesActive() && settings.store.freezeMotion,
             replacement: {
                 match: /animate:\i,loop:/,
                 replace: "animate:!1,loop:!1,_loop:",
@@ -137,7 +142,7 @@ export default definePlugin({
             find: "autoPlayGif",
             all: true,
             noWarn: true,
-            predicate: () => settings.store.pauseGifAutoplay,
+            predicate: () => perfPatchesActive() && settings.store.pauseGifAutoplay,
             replacement: {
                 // Avoid `autoPlayGif:\i` — it matches destructuring aliases and breaks modules.
                 match: /autoPlayGif:!0/g,
@@ -148,9 +153,11 @@ export default definePlugin({
             patchId: "perf-stripMedia",
             find: "this.renderAttachments(",
             predicate: () =>
-                settings.store.stripAttachments
-                || settings.store.stripEmbeds
-                || settings.store.stripStickers,
+                perfPatchesActive() && (
+                    settings.store.stripAttachments
+                    || settings.store.stripEmbeds
+                    || settings.store.stripStickers
+                ),
             replacement: {
                 match: /(?<=\i=)this\.render(?:Attachments|Embeds|StickersAccessories|ComponentAccessories)\((\i)\)/g,
                 replace: (matched, msg) =>
@@ -161,7 +168,7 @@ export default definePlugin({
             patchId: "perf-truncateTop",
             find: "this.truncateTop",
             all: true,
-            predicate: () => settings.store.trimMessageCache,
+            predicate: () => perfPatchesActive() && settings.store.trimMessageCache,
             replacement: {
                 match: /this\.truncateTop\((\i)\)/g,
                 replace: "this.truncateTop($self.effectiveCacheCapFor(this,$1))",
@@ -281,10 +288,7 @@ export default definePlugin({
         stopAdaptiveEngine();
         stopProfiler();
         unmountUsageOverlay();
-        document.documentElement.className = document.documentElement.className
-            .split(/\s+/)
-            .filter(c => !c.startsWith("vc-quiet-perf-"))
-            .join(" ");
+        clearAllPerformanceClasses();
     },
 });
 
