@@ -34,11 +34,11 @@ Or manually:
 
 ## After Backend is live
 
-**Production (Fly.io):** follow [QuietCord/Backend → docs/DEPLOY-FLY.md](https://github.com/QuietCord/Backend/blob/main/docs/DEPLOY-FLY.md) (`fly redis create`, secrets, `fly deploy`).
+**Production (Render):** [DEPLOY-RENDER.md](https://github.com/QuietCord/Backend/blob/main/docs/DEPLOY-RENDER.md) — Upstash Redis + Render Blueprint from `render.yaml`.
 
 **Local only:** copy `.env.example` → `.env`, `docker compose up -d`.
 
-Then set `CLOUD_API_URL` in `src/shared/brand.ts` to your HTTPS API base (e.g. `https://quietcord-api.fly.dev/`).
+Then set `CLOUD_API_URL` in `src/shared/brand.ts` (e.g. `https://quietcord-api.onrender.com/`).
 
 Rebuild client: `bun x pnpm@11.9.0 build` → `sync:ptb`.
 
