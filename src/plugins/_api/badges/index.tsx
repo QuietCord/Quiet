@@ -19,13 +19,17 @@
 import "./fixDiscordBadgePadding.css";
 
 import { _getBadges, BadgePosition, BadgeUserArgs, ProfileBadge } from "@api/Badges";
+import { isPluginEnabled } from "@api/PluginManager";
+import { getQuietProfileBadgeOptions } from "@plugins/quietProfileUi/settings";
+import { processProfileBadges } from "@shared/quietProfileBadges";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { Flex } from "@components/Flex";
 import { Heart } from "@components/Heart";
 import { CopyIcon, LinkIcon } from "@components/Icons";
 import DonateButton from "@components/settings/DonateButton";
 import { openContributorModal } from "@components/settings/tabs";
-import { BADGES_JSON_URL, CLIENT_NAME, QUIET_CONTRIBUTOR_BADGE_URL } from "@shared/brand";
+import { BADGES_JSON_URL, CLIENT_NAME } from "@shared/brand";
+import { contributorBadgeDataUrl } from "@shared/brandAssets";
 import { Devs } from "@utils/constants";
 import { copyWithToast } from "@utils/discord";
 import { Logger } from "@utils/Logger";
@@ -34,7 +38,7 @@ import { shouldShowContributorBadge } from "@utils/misc";
 import definePlugin from "@utils/types";
 import { ContextMenuApi, Forms, Menu, Modal, openModal, Toasts, UserStore } from "@webpack/common";
 
-const CONTRIBUTOR_BADGE = QUIET_CONTRIBUTOR_BADGE_URL;
+const CONTRIBUTOR_BADGE = contributorBadgeDataUrl;
 
 const ContributorBadge: ProfileBadge = {
     id: "quiet_contributor_badge",
@@ -42,7 +46,14 @@ const ContributorBadge: ProfileBadge = {
     iconSrc: CONTRIBUTOR_BADGE,
     position: BadgePosition.START,
     shouldShow: ({ userId }) => shouldShowContributorBadge(userId),
-    onClick: (_, { userId }) => openContributorModal(UserStore.getUser(userId))
+    onClick: (_, { userId }) => openContributorModal(UserStore.getUser(userId)),
+    props: {
+        className: "vc-quiet-contributor-badge",
+        style: {
+            borderRadius: "50%",
+            objectFit: "cover",
+        },
+    },
 };
 
 let DonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
@@ -162,7 +173,9 @@ export default definePlugin({
         if (!profile) return [];
 
         try {
-            return _getBadges(profile);
+            const badges = _getBadges(profile);
+            if (!isPluginEnabled("QuietProfileUi")) return badges;
+            return processProfileBadges(badges, getQuietProfileBadgeOptions());
         } catch (e) {
             new Logger("BadgeAPI#getBadges").error(e);
             return [];
@@ -189,6 +202,7 @@ export default definePlugin({
     },
 
     getDonorBadges(userId: string) {
+        if (shouldShowContributorBadge(userId)) return;
         return DonorBadges[userId]?.map((badge, idx) => ({
             id: `vencord_donor_badge_${idx}`,
             iconSrc: badge.badge,

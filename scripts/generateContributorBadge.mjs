@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Pixel contributor badge: Quiet cat (logo) + wrench, Discord dev-badge vibe.
- * Output: assets/brand/contributor-badge.png (64×64)
+ * Pixel contributor badge: Quiet cat + wrench (Discord dev-badge layout).
+ * Output: assets/brand/contributor-badge.png (48×48, transparent)
  */
 import sharp from "sharp";
 import { dirname, join } from "path";
@@ -10,31 +10,32 @@ import { fileURLToPath } from "url";
 const brand = join(dirname(fileURLToPath(import.meta.url)), "..", "assets", "brand");
 const src = join(brand, "logo.png");
 const out = join(brand, "contributor-badge.png");
-const SIZE = 64;
-const BG = { r: 35, g: 36, b: 40, alpha: 255 };
+const SIZE = 48;
 const WRENCH = { r: 240, g: 178, b: 50, alpha: 255 };
 const WRENCH_HI = { r: 255, g: 220, b: 120, alpha: 255 };
 
-/** 18×18 pixel wrench (1 = metal, 2 = highlight) */
+/** 20×20 pixel wrench (1 = metal, 2 = highlight) */
 const WRENCH_GRID = [
-    "................",
-    "......2222......",
-    ".....211112.....",
-    "....211..211....",
-    "....21....21....",
-    "....21....21....",
-    ".....211112.....",
-    "......2111......",
-    ".....211........",
-    "....211.........",
-    "...211..........",
-    "..211...........",
-    ".211............",
-    ".21.............",
-    "..2.............",
-    "................",
-    "................",
-    "................",
+    "....................",
+    ".......2222.........",
+    "......211112........",
+    "...211211..211......",
+    "...21..21....21.....",
+    "...21..21....21.....",
+    "......211112........",
+    ".......2111.........",
+    "......211...........",
+    ".....211............",
+    "....211.............",
+    "...211..............",
+    "..211...............",
+    ".211................",
+    ".21.................",
+    "..2.................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
 ];
 
 function wrenchBuffer() {
@@ -63,7 +64,7 @@ function wrenchBuffer() {
 
 const trimmed = await sharp(src).trim({ threshold: 1 }).png().toBuffer();
 const { width: tw, height: th } = await sharp(trimmed).metadata();
-const catMax = 30;
+const catMax = 34;
 const scale = Math.min(catMax / tw, catMax / th);
 const nw = Math.max(1, Math.round(tw * scale));
 const nh = Math.max(1, Math.round(th * scale));
@@ -76,19 +77,12 @@ const wrench = await wrenchBuffer();
 const wrenchMeta = await sharp(wrench).metadata();
 
 const catLeft = 2;
-const catTop = Math.round((SIZE - nh) / 2);
-const wrenchLeft = 34;
-const wrenchTop = Math.round((SIZE - wrenchMeta.height) / 2);
-
-if (catLeft + nw > SIZE || catTop + nh > SIZE) {
-    throw new Error(`Cat sprite ${nw}x${nh} at ${catLeft},${catTop} exceeds ${SIZE}px canvas`);
-}
-if (wrenchLeft + wrenchMeta.width > SIZE || wrenchTop + wrenchMeta.height > SIZE) {
-    throw new Error(`Wrench exceeds canvas`);
-}
+const catTop = Math.round((SIZE - nh) / 2) + 1;
+const wrenchLeft = SIZE - wrenchMeta.width - 1;
+const wrenchTop = SIZE - wrenchMeta.height - 1;
 
 await sharp({
-    create: { width: SIZE, height: SIZE, channels: 4, background: BG },
+    create: { width: SIZE, height: SIZE, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
 })
     .composite([
         { input: cat, left: catLeft, top: catTop },

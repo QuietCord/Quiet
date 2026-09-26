@@ -1,0 +1,28 @@
+/*
+ * Quiet — Fallback when badges bypass getBadges() (profile store / CDN URLs).
+ */
+
+[class*="profile"] img[src*="7d9ae358c8c5e118768335dbe68b4fb8"],
+[class*="accountProfile"] img[src*="7d9ae358c8c5e118768335dbe68b4fb8"],
+[class*="profile"] img[src*="83d8a1eb09a8d64e59233eec5d4d5c2d"],
+[class*="accountProfile"] img[src*="83d8a1eb09a8d64e59233eec5d4d5c2d"],
+[class*="profile"] img[src*="badge-icons/83d8a1eb"],
+[class*="accountProfile"] img[src*="badge-icons/83d8a1eb"],
+[class*="profile"] img[src*="badge-icons/7d9ae358"],
+[class*="accountProfile"] img[src*="badge-icons/7d9ae358"] {
+    display: none !important;
+}
+
+[class*="profile"] img.vc-quiet-contributor-badge,
+[class*="accountProfile"] img.vc-quiet-contributor-badge {
+    width: 24px !important;
+    height: 24px !important;
+    margin-inline: 1px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--brand-500) 55%, transparent),
+        0 0 10px color-mix(in srgb, var(--brand-500) 45%, transparent);
+    transform: scale(1.06);
+    transform-origin: center;
+}
