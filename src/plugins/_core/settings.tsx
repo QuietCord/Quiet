@@ -19,7 +19,8 @@
 import { definePluginSettings } from "@api/Settings";
 import { BackupRestoreIcon, CloudIcon, PaintbrushIcon, PatchHelperIcon, PlaceholderIcon, PluginsIcon, UpdaterIcon, VesktopSettingsIcon } from "@components/Icons";
 import { BrandLogoIcon } from "@components/BrandLogoIcon";
-import { BackupAndRestoreTab, CloudTab, PatchHelperTab, PluginsTab, ThemesTab, UpdaterTab, VencordTab } from "@components/settings/tabs";
+import { QuietHubHomeIcon } from "@components/QuietHubHomeIcon";
+import { BackupAndRestoreTab, CloudTab, PatchHelperTab, PluginsTab, QuietHubTab, ThemesTab, UpdaterTab, VencordTab } from "@components/settings/tabs";
 import { CLIENT_NAME, UPSTREAM_NAME } from "@shared/brand";
 import { Devs } from "@utils/constants";
 import { isTruthy } from "@utils/guards";
@@ -176,6 +177,13 @@ export default definePlugin({
                 panelTitle: `${CLIENT_NAME} Settings`,
                 Component: VencordTab,
                 Icon: BrandLogoIcon
+            }),
+            buildEntry({
+                key: "vencord_quiet_hub",
+                title: "Quiet Hub",
+                panelTitle: "Quiet Hub",
+                Component: QuietHubTab,
+                Icon: QuietHubHomeIcon
             }),
             buildEntry({
                 key: "vencord_plugins",

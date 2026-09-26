@@ -1,0 +1,8 @@
+/*
+ * Quiet — brand accents + small layout tweaks (neutrals come from applyVisualRefresh.ts)
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+html.vc-quiet-theme nav[class*="guilds"] {
+    box-shadow: inset -1px 0 0 rgba(168, 162, 158, 0.08);
+}

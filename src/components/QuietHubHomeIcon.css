@@ -1,0 +1,23 @@
+.vc-quiet-hub-home-icon-wrap {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.vc-quiet-hub-home-icon-house {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.vc-quiet-hub-home-icon-cat {
+    position: absolute;
+    left: 22%;
+    top: 38%;
+    width: 56%;
+    height: 56%;
+    object-fit: contain;
+    pointer-events: none;
+    image-rendering: pixelated;
+}

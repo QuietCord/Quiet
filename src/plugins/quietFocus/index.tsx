@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import "./style.css";
+import managedStyle from "./style.css?managed";
 
 import { addServerListElement, removeServerListElement, ServerListRenderPosition } from "@api/ServerList";
 import definePlugin from "@utils/types";
@@ -36,6 +36,8 @@ export default definePlugin({
     enabledByDefault: true,
     dependencies: ["ServerListAPI"],
     settings,
+
+    managedStyle,
 
     settingsAboutComponent: () => (
         <span>

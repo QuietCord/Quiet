@@ -85,6 +85,12 @@ html.vc-focus-mode.vc-focus-dms-mentions nav[class*="guilds"] [class*="listItem"
     color: var(--interactive-normal);
     border: 2px solid transparent;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.vc-focus-mode-button .vc-focus-moon-svg {
+    color: var(--interactive-normal);
+    fill: currentColor;
 }
 
 .vc-focus-mode-button:hover {
@@ -98,28 +104,23 @@ html.vc-focus-mode.vc-focus-dms-mentions nav[class*="guilds"] [class*="listItem"
     border-color: var(--brand-experiment-560);
 }
 
-.vc-focus-moon-glyph {
-    display: block;
+.vc-focus-moon-glyph,
+.vc-focus-moon-svg {
+    display: block !important;
     width: 22px;
     height: 22px;
     flex-shrink: 0;
+    visibility: visible;
+    opacity: 1;
+}
+
+.vc-focus-moon-glyph {
     background-color: currentColor;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E") center / contain no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-.vc-focus-moon-glyph-active {
-    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
-}
-
-.vc-focus-mode-button svg,
-.vc-focus-mode-button .vc-focus-moon {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-    display: block;
-}
-
+.vc-focus-moon-glyph-active,
 .vc-focus-moon-active {
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.35));
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
 }

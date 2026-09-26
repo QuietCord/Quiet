@@ -78,7 +78,20 @@ Opcional: `QUIET_QUIT_PTB=1 pnpm inject:ptb` cierra **solo** `DiscordPTB.exe` an
 
 Si Discord PTB **no arranca** tras `inject:ptb`: `pnpm restore:ptb` (vuelve al Discord vanilla).
 
-### Desarrollo sin reiniciar PTB a cada cambio
+### ¿Cómo saber si Quiet está cargado (no PTB “nativo”)?
+
+**`sync:ptb` no inyecta Quiet** — solo copia `dist/` a `_vencord` si ya corriste `inject:ptb` antes. Abrir Discord PTB desde el menú Inicio **sin** stub en `app.asar` = Discord normal (sin plugins, sin Quiet Hub, sin logo en home).
+
+| Señal | Quiet cargado | Solo PTB vanilla |
+|--------|----------------|------------------|
+| Ajustes → sección **“Quiet Settings”** (Quiet, Quiet Hub, Plugins…) | Sí | No |
+| Clic en versión abajo (ptb …) → copiar incluye **`Quiet` + hash git** | Sí | No |
+| `pnpm verify:ptb` → `PATCHED` | Disco OK | Falta `inject:ptb` |
+
+Tras `inject:ptb` o `sync:ptb`: **cierra PTB por completo** (bandeja → Salir), no solo minimizar. Luego `pnpm start:ptb` o abre **Discord PTB** (no Discord stable `Discord.exe`).
+
+Si el disco dice PATCHED pero la UI sigue vanilla: `pnpm restore:ptb` → `pnpm build` → `pnpm inject:ptb` → reinicia PTB. Tras un **update automático** de PTB, vuelve a correr `inject:ptb`.
+
 
 `inject:ptb` reparcha `app.asar` y, si usas `QUIET_QUIT_PTB=1`, mata el cliente. Eso **no debería cerrar sesión** (el token queda en disco), pero te saca de llamadas y reinicia todo.
 

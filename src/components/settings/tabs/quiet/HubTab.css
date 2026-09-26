@@ -1,0 +1,139 @@
+.vc-quiet-hub-hero {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    background: var(--background-base-low);
+    border: 1px solid var(--border-subtle);
+}
+
+.vc-quiet-hub-hero-logo {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+}
+
+.vc-quiet-hub-hero-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.vc-quiet-hub-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.vc-quiet-hub-health-banner {
+    margin-bottom: 1.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--green-360) 12%, var(--background-base-low));
+    border: 1px solid color-mix(in srgb, var(--green-360) 35%, var(--border-subtle));
+}
+
+.vc-quiet-hub-health-banner[data-warn="true"] {
+    background: color-mix(in srgb, var(--yellow-360) 14%, var(--background-base-low));
+    border-color: color-mix(in srgb, var(--yellow-360) 40%, var(--border-subtle));
+}
+
+.vc-quiet-hub-health-banner-title {
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+    color: var(--header-primary);
+}
+
+.vc-quiet-hub-health-banner-detail {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+}
+
+.vc-quiet-hub-status-card[data-clickable="true"] {
+    cursor: pointer;
+}
+
+.vc-quiet-hub-status-card[data-clickable="true"]:hover {
+    background: var(--background-modifier-hover);
+}
+
+@media (width <=900px) {
+    .vc-quiet-hub-status-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vc-quiet-hub-status-card {
+    background: var(--background-base-low);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    min-height: 6.5rem;
+}
+
+.vc-quiet-hub-status-card[data-muted="true"] {
+    opacity: 0.55;
+}
+
+.vc-quiet-hub-status-card[data-active="true"] {
+    border-color: var(--brand-experiment-560);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-experiment) 25%, transparent);
+}
+
+.vc-quiet-hub-status-card[data-warn="true"] {
+    border-color: var(--yellow-360);
+}
+
+.vc-quiet-hub-status-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+}
+
+.vc-quiet-hub-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.vc-quiet-hub-status-dot[data-state="on"] {
+    background: var(--green-360);
+}
+
+.vc-quiet-hub-status-dot[data-state="warn"] {
+    background: var(--yellow-360);
+}
+
+.vc-quiet-hub-status-dot[data-state="info"] {
+    background: var(--brand-experiment);
+}
+
+.vc-quiet-hub-status-headline {
+    margin: 0 0 0.35rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--header-primary);
+}
+
+.vc-quiet-hub-status-detail {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+}
+
+.vc-quiet-hub-section {
+    margin-top: 1.75rem;
+}
+
+.vc-quiet-hub-plugin-grid .vc-settings-quickActions-card {
+    margin-bottom: 0;
+}

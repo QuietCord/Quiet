@@ -39,6 +39,7 @@ import { relaunch } from "@utils/native";
 import { ConfirmModal, Forms, openModal, React, TextInput, useMemo, UserStore } from "@webpack/common";
 
 import { DonateButtonComponent, isQuietDonor } from "./DonateButton";
+import { openQuietHubSettings } from "@components/settings/tabs/quiet/HubTab";
 import { MacOSVibrancySettings } from "./MacVibrancySettings";
 import { NotificationSection } from "./NotificationSettings";
 import { WindowsMaterialSettings } from "./WindowsMaterialSettings";
@@ -303,6 +304,18 @@ function VencordSettings() {
                         />
                     )}
                 </QuickActionCard>
+            </section>
+
+            <Divider />
+
+            <section className={Margins.top16}>
+                <Forms.FormTitle tag="h5">Quiet Hub</Forms.FormTitle>
+                <Forms.FormText className={Margins.bottom12} style={{ color: "var(--text-muted)" }}>
+                    Day-to-day Focus, performance, split, and cloud — one dashboard with the casita logo.
+                </Forms.FormText>
+                <Forms.FormText>
+                    <a onClick={() => openQuietHubSettings()}>Open Quiet Hub</a>
+                </Forms.FormText>
             </section>
 
             <Divider />

@@ -1,0 +1,39 @@
+/*
+ * Home DMs — only hide Discodo after Quiet logo is mounted (avoids empty circle).
+ */
+
+html.vc-quiet-home-brand [data-vc-quiet-home-item] [class*="childWrapper"],
+html.vc-quiet-home-brand [data-vc-quiet-home] {
+    position: relative;
+}
+
+html.vc-quiet-home-brand [data-vc-quiet-home-ready] svg,
+html.vc-quiet-home-brand [class*="childWrapper"]:has(.vc-quiet-home-overlay) svg {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+html.vc-quiet-home-brand [data-vc-quiet-home-ready] img:not(.vc-quiet-home-overlay):not(.vc-quiet-home-nav-icon) {
+    opacity: 0 !important;
+}
+
+.vc-quiet-home-overlay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+    image-rendering: pixelated;
+    object-fit: contain;
+    display: block !important;
+}
+
+.vc-quiet-home-nav-icon {
+    display: block;
+    margin: auto;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+}

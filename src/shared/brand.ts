@@ -6,6 +6,9 @@
 /** User-facing product name in Discord settings and notifications */
 export const CLIENT_NAME = "Quiet";
 
+/** Window title prefix instead of "Discord" (taskbar / Alt+Tab / document.title). */
+export const CLIENT_WINDOW_TITLE = "QuietCord";
+
 /** Upstream project (keep for GPL attribution and merges) */
 export const UPSTREAM_NAME = "Vencord";
 export const UPSTREAM_REPO = "Vendicated/Vencord";
@@ -40,6 +43,9 @@ export const QUIET_CONTRIBUTOR_BADGE_URL =
 /** Pixel-art cat-in-box logo — see assets/brand/ */
 export const CLIENT_LOGO_SOURCE = "";
 export const CLIENT_FAVICON_SOURCE = "";
+
+/** HTTPS logo for CSS home button (Discord CSP allows raw.githubusercontent.com; not data: URLs). */
+export const CLIENT_LOGO_RAW_URL = `https://raw.githubusercontent.com/${FORK_REPO}/main/assets/brand/logo.png`;
 
 /** QuietPresence: Rich Presence asset key in your Discord app (upload logo.png as this key) */
 export const QUIET_RPC_DEFAULT_IMAGE_KEY = "quiet";
