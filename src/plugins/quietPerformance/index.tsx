@@ -277,6 +277,10 @@ export default definePlugin({
             logger.warn("AlwaysAnimate is on — disable it for full motion savings.");
 
         setTimeout(() => logPatchHealth(), 3000);
+
+        if (settings.store.shareAnonymousPerfStats) {
+            setTimeout(() => void import("./engine/perfTelemetryUpload").then(m => m.maybeUploadAnonymousPerfStats()), 120_000);
+        }
     },
 
     syncProfilerOverlay() {

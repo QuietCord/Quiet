@@ -19,6 +19,8 @@
 import { useSettings } from "@api/Settings";
 import { authorizeCloud, deauthorizeCloud } from "@api/SettingsSync/cloudSetup";
 import { deleteCloudSettings, eraseAllCloudData, getCloudSettings, getCloudSyncDirection, putCloudSettings, setCloudSyncDirection } from "@api/SettingsSync/cloudSync";
+import { mergeCloudSettings } from "@api/SettingsSync/cloudMerge";
+import { registerReleaseHook, unregisterReleaseHook } from "@api/SettingsSync/cloudHooks";
 import { BaseText } from "@components/BaseText";
 import { Button, ButtonProps } from "@components/Button";
 import { CheckedTextInput } from "@components/CheckedTextInput";
@@ -206,8 +208,52 @@ function SettingsSyncSection() {
                             </ButtonWithIcon>
                         )}
                     </Tooltip>
+                    <ButtonWithIcon
+                        variant="secondary"
+                        disabled={!sectionEnabled}
+                        onClick={() => mergeCloudSettings(true)}
+                        Icon={CloudDownloadIcon}
+                    >
+                        Merge with cloud
+                    </ButtonWithIcon>
                 </Grid>
             </Flex>
+        </section>
+    );
+}
+
+function ReleaseNotifySection() {
+    const { authenticated } = useSettings(["cloud.authenticated"]).cloud;
+    const [webhook, setWebhook] = useState("");
+
+    return (
+        <section>
+            <SectionHeading text="Quiet release alerts" />
+            <Paragraph className={Margins.bottom8}>
+                Register a Discord webhook to get pinged when a new Quiet build ships on main (for PTB testers).
+            </Paragraph>
+            <CheckedTextInput
+                initialValue={webhook}
+                onChange={setWebhook}
+                validate={validateUrl}
+                placeholder="https://discord.com/api/webhooks/..."
+            />
+            <Grid columns={2} gap="1em" className={Margins.top8}>
+                <Button
+                    variant="primary"
+                    disabled={!authenticated || !webhook}
+                    onClick={() => registerReleaseHook(webhook)}
+                >
+                    Register webhook
+                </Button>
+                <Button
+                    variant="secondary"
+                    disabled={!authenticated}
+                    onClick={() => unregisterReleaseHook()}
+                >
+                    Unregister
+                </Button>
+            </Grid>
         </section>
     );
 }
@@ -257,6 +303,8 @@ function CloudTab() {
                 <CloudSetupSection />
                 <Divider />
                 <SettingsSyncSection />
+                <Divider />
+                <ReleaseNotifySection />
                 <Divider />
                 <ResetSection />
             </Flex>

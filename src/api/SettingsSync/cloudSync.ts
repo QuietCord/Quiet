@@ -133,10 +133,10 @@ export async function getCloudSettings(shouldNotify = true, force = false) {
             if (shouldNotify)
                 showNotification({
                     title: "Cloud Settings",
-                    body: "Your local settings are newer than the cloud ones.",
+                    body: "Your local settings are newer than the cloud. Upload them, or use Merge with cloud to combine both devices.",
                     noPersist: true,
                 });
-            return;
+            return false;
         }
 
         const data = await res.arrayBuffer();

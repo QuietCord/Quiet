@@ -415,6 +415,11 @@ export const settings = definePluginSettings({
         description: "Log QuietPerformance patch health when Discord updates break webpack finds.",
         default: true,
     },
+    shareAnonymousPerfStats: {
+        type: OptionType.BOOLEAN,
+        description: "Share anonymous perf stats with the Quiet cloud (guild workload class, patch health, build id — never message content). Requires Cloud Integrations.",
+        default: false,
+    },
     liteChromium: {
         type: OptionType.BOOLEAN,
         description: "Fewer Chromium helper processes, no spare renderer, EcoQoS on Windows. Restart required.",
