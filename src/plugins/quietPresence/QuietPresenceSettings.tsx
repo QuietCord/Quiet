@@ -18,6 +18,7 @@ import { Select, Text, TextInput, useState } from "@webpack/common";
 import { QUIET_RPC_APP_ID } from "@shared/brand";
 
 import { SETUP_STEPS } from "./defaults";
+import { DEV_OVERLAY_LINES } from "./devOverlay";
 import { restartPresenceRotation } from "./rotationTimer";
 import { ROTATION_LINES } from "./rotation";
 import { setQuietPresence } from "./rpc";
@@ -79,7 +80,7 @@ function SingleSetting({ settingsKey, label, isValid, disabled }: TextOption) {
 }
 
 export function QuietPresenceSettings() {
-    const s = settings.use(["type", "timestampMode", "rotateEnabled", "rotateIntervalSec"]);
+    const s = settings.use(["type", "timestampMode", "rotateEnabled", "rotateIntervalSec", "devOverlayEnabled"]);
 
     return (
         <div className={cl("root")}>
@@ -105,6 +106,30 @@ export function QuietPresenceSettings() {
             )}
 
             <Divider />
+
+            <FormSwitch
+                title="Dev overlay (only you)"
+                description="Extra rotating card on your profile — not sent to Discord; friends never see it"
+                value={s.devOverlayEnabled === true}
+                onChange={v => {
+                    settings.store.devOverlayEnabled = v;
+                    updatePresence();
+                }}
+            />
+            {s.devOverlayEnabled === true && (
+                <>
+                    <Heading tag="h5">Dev lines (edit in devOverlay.ts)</Heading>
+                    <ul className={cl("steps")}>
+                        {DEV_OVERLAY_LINES.map((line, i) => (
+                            <li key={i}>
+                                <strong>{line.details}</strong>
+                                {" · "}
+                                {line.state}
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
 
             <FormSwitch
                 title="Rotate messages"

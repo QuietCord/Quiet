@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { installDevOverlayPatch, resetDevOverlay, tickDevOverlay, uninstallDevOverlayPatch } from "./devOverlay";
 import { resetRotation, tickRotation } from "./rotation";
 import { setQuietPresence } from "./rpc";
 import { settings } from "./settings";
@@ -19,21 +20,36 @@ function intervalMs() {
     return Math.min(120, Math.max(5, sec)) * 1000;
 }
 
+function syncDevOverlayPatch() {
+    uninstallDevOverlayPatch();
+    if (settings.store.devOverlayEnabled === true) installDevOverlayPatch();
+}
+
 export function startPresenceRotation() {
     stopPresenceRotation();
     resetRotation();
+    resetDevOverlay();
     presenceSessionStart = Date.now();
-    if (settings.store.rotateEnabled === false) return;
+    syncDevOverlayPatch();
+
+    const needsTimer =
+        settings.store.rotateEnabled !== false ||
+        settings.store.devOverlayEnabled === true;
+    if (!needsTimer) return;
 
     rotateTimer = setInterval(() => {
-        tickRotation();
-        void setQuietPresence();
+        if (settings.store.rotateEnabled !== false) {
+            tickRotation();
+            void setQuietPresence();
+        }
+        if (settings.store.devOverlayEnabled === true) tickDevOverlay();
     }, intervalMs());
 }
 
 export function stopPresenceRotation() {
     if (rotateTimer) clearInterval(rotateTimer);
     rotateTimer = null;
+    uninstallDevOverlayPatch();
 }
 
 export function restartPresenceRotation() {

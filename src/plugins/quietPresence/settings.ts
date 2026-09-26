@@ -27,6 +27,11 @@ export const settings = definePluginSettings({
         default: 15,
         description: "Seconds between each message (5–120)",
     },
+    devOverlayEnabled: {
+        type: OptionType.BOOLEAN,
+        default: false,
+        description: "Extra dev activity on your profile — only on your screen, not sent to friends",
+    },
     config: {
         type: OptionType.COMPONENT,
         component: QuietPresenceSettings,
