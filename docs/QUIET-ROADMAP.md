@@ -6,7 +6,7 @@ Quiet is **not** a generic Vencord skin. It is a **performance- and attention-fi
 
 | Area | Quiet-only |
 |------|------------|
-| **QuietPerformance** | Stage 4 adaptive controller (guild workload class, AUTO/ON/OFF features, memory pressure, sampling tiers), Stage 5 deep profiler, benchmark V2, patch health, lite Chromium / CDN policy in main |
+| **QuietPerformance** | Stage 4 adaptive controller (guild workload class, AUTO/ON/OFF features, memory pressure, sampling tiers), Stage 5 deep profiler, benchmark V2, patch health, **QuietRecovery panel** (Safe Mode + re-baseline), lite Chromium / CDN policy in main |
 | **QuietFocus** | Minimal UI session + timed DMs/@mentions scope (separate from perf CSS) |
 | **QuietSplitView** | Resizable side chat + swap-to-main |
 | **QuietTranslator** | Manual translate accessory, per-guild targets, send-time translate |
@@ -24,8 +24,8 @@ Quiet is **not** a generic Vencord skin. It is a **performance- and attention-fi
 ### Performance & stability
 
 - **QuietSchedule** — time-of-day profiles (Focus + Performance preset + CDN policy) with optional calendar import.
-- **QuietRecovery** — after Discord build change: auto Safe Mode + one-click “re-baseline Stage 4” using saved benchmark V2.
-- **Patch health dashboard** — in-client panel fed by `quietPatchHealth` + link to “report anonymous snapshot” when broken > 0.
+- ~~**QuietRecovery**~~ — **shipped in Performance settings**: Safe Mode, Run QuietRecovery, re-baseline/compare Stage 4 benchmark V2, patch list + copy report.
+- ~~**Patch health dashboard**~~ — **shipped** in QuietRecovery panel + Hub summary; optional: anonymous snapshot button when cloud opt-in.
 - **Flux budget guard** — cap dispatch rate per event family when controller is in MEMORY PRESSURE (extend Stage 4).
 
 ### Attention & layout

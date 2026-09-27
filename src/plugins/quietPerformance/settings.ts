@@ -12,6 +12,7 @@ import { presetNeedsConfirmation } from "./presetRisk";
 import { PerformanceAutoPanel } from "./PerformanceAutoPanel";
 import { PerformanceDeepPanel } from "./PerformanceDeepPanel";
 import { PerformanceHistoryPanel } from "./PerformanceHistoryPanel";
+import { PerformanceRecoveryPanel } from "./PerformanceRecoveryPanel";
 import { PerformanceSettingsExtras } from "./PerformanceSettingsExtras";
 
 import { getPresetPatch, isApplyingPreset, type PerformanceProfile, withPresetApply } from "./presets";
@@ -352,6 +353,10 @@ export const settings = definePluginSettings({
     stage4Panel: {
         type: OptionType.COMPONENT,
         component: PerformanceAutoPanel,
+    },
+    recoveryPanel: {
+        type: OptionType.COMPONENT,
+        component: PerformanceRecoveryPanel,
     },
     performanceHistoryPanel: {
         type: OptionType.COMPONENT,

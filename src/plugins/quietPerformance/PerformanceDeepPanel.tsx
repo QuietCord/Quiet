@@ -17,7 +17,7 @@ import {
     resetDeepProfilerSamples,
     syncDeepProfiler,
 } from "./engine/stage5";
-import { formatPatchHealthToast, logPatchHealth } from "./patchHealthReport";
+import { logPatchHealth } from "./patchHealthReport";
 import { settings } from "./settings";
 
 export function PerformanceDeepPanel() {
@@ -117,7 +117,7 @@ export function PerformanceDeepPanel() {
                 </Button>
             </div>
             <Forms.FormText className="vc-quiet-perf-risk-muted">
-                Patch health: {formatPatchHealthToast()}
+                Patch health summary — use <strong>QuietRecovery</strong> panel above for Safe Mode and re-baseline actions.
             </Forms.FormText>
         </section>
     );

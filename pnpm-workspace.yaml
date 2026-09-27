@@ -15,6 +15,7 @@ allowedDeprecatedVersions:
   q: '*'
 strictPeerDependencies: false
 allowBuilds:
+  electron: true
   esbuild: true
 pmOnFail: warn
 minimumReleaseAgeExclude:

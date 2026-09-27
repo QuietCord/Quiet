@@ -28,6 +28,23 @@ function label(patchId: string) {
     return PATCH_LABELS[patchId] ?? patchId;
 }
 
+export function getPatchHealthDetail(plugin = "QuietPerformance") {
+    const discordBuild = getBuildNumber();
+    const summary = summarizePatchHealth(plugin);
+    return {
+        discordBuild,
+        ...summary,
+        labeledRows: summary.rows.map(r => ({
+            ...r,
+            label: label(r.patchId),
+        })),
+        labeledBroken: summary.broken.map(r => ({
+            ...r,
+            label: label(r.patchId),
+        })),
+    };
+}
+
 export function formatPatchHealthToast(plugin = "QuietPerformance") {
     const discordBuild = getBuildNumber();
     const { active, applied, broken, skipped } = summarizePatchHealth(plugin);
